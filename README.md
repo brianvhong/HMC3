@@ -1,3 +1,3 @@
 # HMC3
 
-To document statistical analysis workflow and create figures for Osccar's HMC3 experiments. 
+To document statistical analyses workflow and create figures for Oscar's HMC3 experiments. 
