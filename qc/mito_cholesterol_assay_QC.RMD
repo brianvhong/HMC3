@@ -1,0 +1,120 @@
+---
+title: "Mitochondria Total Cholesterol - Standard and QC"
+author: "Oscar and Brian"
+date: "2022-08-05"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+---
+
+
+```{r include = F}
+## Packages
+if(!any(rownames(installed.packages()) == "pacman")){
+   install.packages("pacman")
+}
+
+pacman::p_load(here,
+               tidyverse,
+               DT)
+```
+
+
+
+```{r include = F}
+## Read csv
+chol.assay <- read_csv(here("tidy","TotalCholesterol.Mitochondria_Calculations_06.27.2022_OMMH.csv"))
+standard <- read_csv(here("standard","standard_TotalCholesterol.Mitochondria_Calculations_06.27.2022_OMMH.csv"))
+```
+
+
+## Standard
+```{r echo = F}
+blank <- mean(standard$fluorescence[standard$concentration == "0"])
+
+standard <- standard %>%
+        group_by(concentration) %>%
+        summarize(norm_fluorescence = mean(fluorescence) - blank) 
+
+
+### Linear Model
+linear.model <- lm(norm_fluorescence ~ concentration, data = standard)
+
+
+### Linear model function
+ggplotRegression <- function (fit) {
+        
+        require(ggplot2)
+        
+        ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) + 
+                geom_point() +
+                stat_smooth(method = "lm", col = "red") +
+                labs(title = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
+                                   "Intercept =",signif(fit$coef[[1]],5 ),
+                                   " Slope =",signif(fit$coef[[2]], 5),
+                                   " P =",signif(summary(fit)$coef[2,4], 5)), 
+                     x = 'Concentration (uM)',
+                     y = 'Fluorescence')
+}
+
+ggplotRegression(linear.model)
+
+slope <- signif(linear.model$coef[[2]], 5)
+intercept <- signif(linear.model$coef[[1]],5 )
+```
+
+> Standard looks good.
+
+## Samples
+```{r echo = F}
+chol.assay.protein <- chol.assay %>%
+        mutate(free_chol_uM = (fluorescence - intercept - blank)/slope,
+               norm_free_chol_uM = free_chol_uM/protein_ug_ml)
+
+datatable(chol.assay.protein, colnames = c("Treatment", "Fluorescence (non-norm)","Protein ug/mL","Free Chol. uM","Norm Free Chol. uM")) %>%
+        formatRound(columns = c("protein_ug_ml","free_chol_uM","norm_free_chol_uM"), digits = 3)
+```
+
+> Fluorescence is not normalized to blanked values, but blank is subtracted in calculations afterwards. 
+
+## Data Summary
+
+### Non-normalize to protein
+```{r echo = F}
+chol.assay.protein.summary <- chol.assay.protein %>%
+        group_by(treatment) %>%
+        summarize(mean_free_chol_uM = mean(free_chol_uM),
+                  sd_free_chol_uM = sd(free_chol_uM),
+                  cv_free_chol_uM = sd_free_chol_uM/mean_free_chol_uM * 100)
+
+datatable(chol.assay.protein.summary, colnames = c("Treatment","Free Chol. uM","SD","CV (%)")) %>%
+        formatRound(columns = c("mean_free_chol_uM", "sd_free_chol_uM","cv_free_chol_uM"), digits = 3)
+```
+
+
+
+### Normalize to protein
+```{r echo = F}
+norm_chol.assay.protein.summary <- chol.assay.protein %>%
+        group_by(treatment) %>%
+        summarize(norm_mean_free_chol_uM = mean(norm_free_chol_uM),
+                  norm_sd_free_chol_uM = sd(norm_free_chol_uM),
+                  norm_cv_free_chol_uM = norm_sd_free_chol_uM/norm_mean_free_chol_uM * 100)
+
+datatable(norm_chol.assay.protein.summary, colnames = c("Treatment","Norm. Free Chol. uM","SD","CV (%)")) %>%
+        formatRound(columns = c("norm_mean_free_chol_uM", "norm_sd_free_chol_uM","norm_cv_free_chol_uM"), digits = 3)
+```
+
+> Much more variable with protein normalization. 
+
+
+## Summary
+
+> Consider using non normalize data.
+
+## Save rdata
+```{r}
+save(chol.assay.protein, chol.assay.protein.summary, norm_chol.assay.protein.summary, file = here("rdata","mito_cholesterol_tidy.rdata"))
+```
+

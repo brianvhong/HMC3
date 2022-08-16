@@ -1,0 +1,120 @@
+---
+title: "APOE ELISA - QC"
+author: "Oscar and Brian"
+date: "2022-08-05"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 2
+---
+
+
+```{r include = F}
+## Packages
+if(!any(rownames(installed.packages()) == "pacman")){
+   install.packages("pacman")
+}
+
+pacman::p_load(here,
+               tidyverse,
+               DT)
+```
+
+
+
+```{r include = F}
+## Read csv
+apoe.assay <- read_csv(here("tidy","ELISA_APOE_HMC36WellExp_Calculations_10.junio.2022_OMMH.csv"))
+standard <- read_csv(here("standard","standard_ELISA_APOE_HMC36WellExp_Calculations_10.junio.2022_OMMH.csv"))
+```
+
+
+## Standard
+```{r echo = F}
+blank <- mean(standard$fluorescence[standard$concentration == "0"])
+
+standard <- standard %>%
+        group_by(concentration) %>%
+        summarize(norm_fluorescence = mean(fluorescence) - blank) 
+
+
+### Linear Model
+linear.model <- lm(norm_fluorescence ~ concentration, data = standard)
+
+
+### Linear model function
+ggplotRegression <- function (fit) {
+        
+        require(ggplot2)
+        
+        ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) + 
+                geom_point() +
+                stat_smooth(method = "lm", col = "red") +
+                labs(title = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
+                                   "Intercept =",signif(fit$coef[[1]],5 ),
+                                   " Slope =",signif(fit$coef[[2]], 5),
+                                   " P =",signif(summary(fit)$coef[2,4], 5)), 
+                     x = 'Concentration (uM)',
+                     y = 'Fluorescence')
+}
+
+ggplotRegression(linear.model)
+
+slope <- signif(linear.model$coef[[2]], 5)
+intercept <- signif(linear.model$coef[[1]],5 )
+```
+
+> Standard looks decent.
+
+## Samples
+```{r echo = F}
+apoe.assay.protein <- apoe.assay %>%
+        mutate(apoe_pg_ml = (fluorescence - intercept - blank)/slope,
+               norm_apoe_pg_ml = apoe_pg_ml/protein_ug_ml)
+
+datatable(apoe.assay.protein, colnames = c("Treatment", "Set","Fluorescence (non-norm)","Protein (ug/mL)","ApoE (pg/mL)","Norm ApoE (pg/mL) per protein")) %>%
+        formatRound(columns = c("protein_ug_ml","apoe_pg_ml","norm_apoe_pg_ml"), digits = 3)
+```
+
+
+
+## Data Summary 
+
+### Non-normalize to protein
+```{r echo = F}
+apoe.assay.protein.summary <- apoe.assay.protein %>%
+        group_by(treatment, set) %>%
+        summarize(mean_apoe_pg_ml = mean(apoe_pg_ml),
+                  sd_apoe_pg_ml = sd(apoe_pg_ml),
+                  cv_apoe_pg_ml = sd_apoe_pg_ml/mean_apoe_pg_ml * 100)
+
+datatable(apoe.assay.protein.summary, colnames = c("Treatment","Set", "ApoE (pg/mL)","SD","CV (%)")) %>%
+        formatRound(columns = c("mean_apoe_pg_ml", "sd_apoe_pg_ml","cv_apoe_pg_ml"), digits = 3)
+```
+
+
+
+### Normalize to protein
+```{r echo = F}
+norm_apoe.assay.protein.summary <- apoe.assay.protein %>%
+        group_by(treatment, set) %>%
+        summarize(norm_mean_apoe_pg_ml = mean(norm_apoe_pg_ml),
+                  norm_sd_apoe_pg_ml = sd(norm_apoe_pg_ml),
+                  norm_cv_apoe_pg_ml = norm_sd_apoe_pg_ml/norm_mean_apoe_pg_ml * 100)
+
+datatable(norm_apoe.assay.protein.summary, colnames = c("Treatment","Set", "Norm ApoE (pg/mL) per protein","SD","CV (%)")) %>%
+        formatRound(columns = c("norm_mean_apoe_pg_ml", "norm_sd_apoe_pg_ml","norm_cv_apoe_pg_ml"), digits = 3)
+```
+
+> Much more variable with protein normalization. 
+
+
+## Summary
+
+> Need to double check numbers
+
+## Save rdata
+```{r}
+save(apoe.assay.protein, apoe.assay.protein.summary, norm_apoe.assay.protein.summary, file = here("rdata","apoe_tidy.rdata"))
+```

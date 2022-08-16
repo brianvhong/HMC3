@@ -1,0 +1,143 @@
+---
+title: "Cell cholesterol after Treatment - QC and Tidying Data"
+author: "Oscar and Brian"
+date: "2022-07-29"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+---
+
+
+```{r include = F}
+## Packages
+if(!any(rownames(installed.packages()) == "pacman")){
+   install.packages("pacman")
+}
+
+pacman::p_load(here,
+               tidyverse,
+               DT)
+```
+
+
+
+```{r include = F}
+## Read csv
+chol.assay <- read_csv(here("tidy","TotalCholesterol3_6wellEXP_Calculations_15.junio.2022_OMMH_forBrian.csv"))
+standard <- read_csv(here("standard","standard_TotalCholesterol3_6wellEXP_Calculations_15.junio.2022_OMMH_forBrian.csv"))
+```
+
+
+## Standard
+```{r echo = F}
+blank <- mean(standard$fluorescence[standard$concentration == "0"])
+
+standard <- standard %>%
+        group_by(concentration) %>%
+        summarize(norm_fluorescence = mean(fluorescence) - blank) 
+
+
+### Linear Model
+linear.model <- lm(norm_fluorescence ~ concentration, data = standard)
+
+
+### Linear model function
+ggplotRegression <- function (fit) {
+        
+        require(ggplot2)
+        
+        ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) + 
+                geom_point() +
+                stat_smooth(method = "lm", col = "red") +
+                labs(title = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
+                                   "Intercept =",signif(fit$coef[[1]],5 ),
+                                   " Slope =",signif(fit$coef[[2]], 5),
+                                   " P =",signif(summary(fit)$coef[2,4], 5)), 
+                     x = 'Concentration (uM)',
+                     y = 'Fluorescence')
+}
+
+ggplotRegression(linear.model)
+
+slope <- signif(linear.model$coef[[2]], 5)
+intercept <- signif(linear.model$coef[[1]],5 )
+```
+
+### Samples
+```{r echo = F}
+## Subtract Blank
+chol.assay <- chol.assay %>%
+        mutate(chol_ester = whole_cell_free_chol - total_chol_w_chol_ester)
+
+
+chol.assay.protein <- chol.assay %>%
+        mutate(whole_cell_free_chol_uM = (whole_cell_free_chol - intercept- blank)/slope,
+               total_chol_w_chol_ester_uM = (total_chol_w_chol_ester - intercept- blank)/slope,
+               chol_ester_uM = whole_cell_free_chol_uM - (chol_ester - intercept- blank)/slope,
+               norm_whole_cell_free_chol_uM = whole_cell_free_chol_uM/protein_ug_ml,
+               norm_total_chol_w_chol_ester_uM = total_chol_w_chol_ester_uM/protein_ug_ml,
+               norm_chol_ester_uM = chol_ester_uM/protein_ug_ml)
+
+```
+
+## Replace Chol ABO + Chol Values with previous experiment
+```{r}
+## Replace values with previous experiment
+chol.assay.protein$whole_cell_free_chol_uM <- as.character(chol.assay.protein$whole_cell_free_chol_uM)
+
+chol.assay.protein$whole_cell_free_chol_uM <- plyr::revalue(chol.assay.protein$whole_cell_free_chol_uM, c("6.66595385481148" = "8.828165984"))
+
+chol.assay.protein$whole_cell_free_chol_uM <- plyr::revalue(chol.assay.protein$whole_cell_free_chol_uM, c("6.47290482324653" = "8.56930081"))
+
+chol.assay.protein$whole_cell_free_chol_uM <- as.numeric(chol.assay.protein$whole_cell_free_chol_uM)
+
+
+```
+
+## Calculate concentration
+
+### Whole Cell Free Cholesterol and normalized to protein
+```{r echo = F}
+free_chol_df <- chol.assay.protein %>%
+        select(treatment, whole_cell_free_chol_uM, norm_whole_cell_free_chol_uM) %>%
+        group_by(treatment) %>%
+        summarize(mean_free_chol_uM = mean(whole_cell_free_chol_uM),
+                  sd_free_chol_uM = sd(whole_cell_free_chol_uM),
+                  cv_free_chol = sd_free_chol_uM/mean_free_chol_uM *100,
+                  mean_norm_free_chol_uM = mean(norm_whole_cell_free_chol_uM),
+                  sd_norm_free_chol_uM = sd(norm_whole_cell_free_chol_uM),
+                  cv_norm_free_chol = sd_norm_free_chol_uM/mean_norm_free_chol_uM*100)
+
+datatable(free_chol_df)
+```
+
+> CVs are in percentages 
+
+### Esteified Cholesterol and normalized to protein
+
+```{r echo = F}
+ester_chol_df <- chol.assay.protein %>%
+        select(treatment, chol_ester_uM, norm_chol_ester_uM) %>%
+        group_by(treatment) %>%
+        summarize(mean_chol_ester_uM = mean(chol_ester_uM),
+                  sd_chol_ester_uM = sd(chol_ester_uM),
+                  cv_free_chol = sd_chol_ester_uM/mean_chol_ester_uM *100,
+                  mean_norm_chol_ester_uM = mean(norm_chol_ester_uM),
+                  sd_norm_chol_ester_uM = sd(norm_chol_ester_uM),
+                  cv_norm_chol_ester_uM = sd_norm_chol_ester_uM/mean_norm_chol_ester_uM*100)
+
+datatable(ester_chol_df)
+```
+
+> CVs are in percentages 
+
+## Summary
+
+It seems that normalizing to total protein concentration makes the data more variable.
+
+## Save rdata
+```{r}
+save(chol.assay.protein, free_chol_df, ester_chol_df, file = here("rdata","cholesterol_tidy.rdata"))
+```
+
