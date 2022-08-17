@@ -17,10 +17,13 @@ if(!any(rownames(installed.packages()) == "pacman")){
 pacman::p_load(here,
                pheatmap,
                tidyverse,
-               multcomp,
-               multcompView, # Multiple comparison
                ggthemes,
-               forcats) # Rename levels
+               forcats, # Rename levels
+               emmeans,
+               ggpubr,
+               DT,
+               egg,
+               patchwork) 
 
 data <- read.csv(here("tidy","qpcr_hmc3.csv"))
 
@@ -99,17 +102,6 @@ data <- data %>%
 
 ## Rename Factors
 
-data$treatment <- factor(data$treatment, levels = c("control", "abo", "cho", "fru","lps", "abo_cho","abo_fru", "abo_lps", "cho_lps", "fru_cho","fru_lps", "abo_cho_lps","abo_fru_cho_lps"))
-
-data$treatment <- do.call(
-        fct_recode,
-        c(list(data$treatment), setNames(c("control", "abo", "cho", "fru","lps", "abo_cho","abo_fru", "abo_lps", "cho_lps", "fru_cho","fru_lps", "abo_cho_lps","abo_fru_cho_lps"),
-                                         c("Control","AβO", "Chol","Fruc", "LPS", "AβO/Chol", "AβO/Fruc", "AβO/LPS", "Chol/LPS", "Fruc/Chol", "Fruc/LPS", "AβO/Chol/LPS", "AβO/Fruc/Chol/LPS")))
-)
-
-
-
-
 data$treatment <- factor(data$treatment, levels = c("control","abo", "cho", "fru","lps", "abo_cho","abo_fru", "abo_lps", "cho_lps", "fru_cho","fru_lps", "abo_cho_lps","abo_fru_cho_lps"))
 
 ## New Dataframe reordered
@@ -143,37 +135,57 @@ levels(data$treatment) <- list(Control = "control",
 anova <- aov(IL1B ~ treatment, data = data)
 p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
 
-# Tukey's test
-tukey <- TukeyHSD(anova)
+# Contrast with Dunnett
+emm_contrasts <- anova %>%
+  emmeans("treatment") %>%
+  contrast("trt.vs.ctrl", infer = c(TRUE, TRUE)) %>%
+  as_tibble() %>%
+  mutate(p.value.round = insight::format_p(p.value, name = NULL,),
+         p.value.star = insight::format_p(p.value, name = NULL, stars_only = TRUE)) 
 
-# compact letter display
-cld <- multcompLetters4(anova, tukey)
+emm_contrasts_split <- emm_contrasts
+## Split string
+emm_contrasts_split[c('group1', 'group2')] <- str_split_fixed(emm_contrasts_split$contrast, ' - ', 2) 
 
-dt <- group_by(data, treatment) %>%
-        summarise(mean=mean(IL1B), sd = sd(IL1B)) %>%
-        arrange(desc(mean))
+## Data Summary ##
+dt <- data %>%
+  group_by(treatment) %>%
+        summarize(mean = mean(IL1B),
+                  sd = sd(IL1B))
 
-# extracting the compact letter display and adding to the Tk table
-cld <- as.data.frame.list(cld$treatment)
-dt$cld <- cld$Letters
-
-ggplot(dt, aes(treatment, mean)) + 
+IL1B_plot <- ggplot(dt, aes(treatment, mean)) + 
         geom_bar(stat = "identity", aes(fill = mean), show.legend = FALSE) +
         geom_errorbar(aes(ymin = mean-sd, ymax=mean+sd), width = 0.2) +
         labs(x = "Treatment", y = expression(Log[2]*"FC"), title = "IL1B", subtitle = paste("ANOVA: P","=", paste0(p_value, collapse = NULL))) +
-        geom_text(aes(label = cld, y = mean + sd), vjust = -0.5) +
         theme_classic() +
         theme(axis.text.x = element_text(angle = 90, color = "black")) +
-  scale_fill_continuous(high = "#132B43", low = "#56B1F7")
+  scale_fill_continuous(high = "#132B43", low = "#56B1F7") +
+        # letters
+stat_pvalue_manual(data = emm_contrasts_split,
+                   y.position = rep(5,12),
+                   label = "p.value.star",
+                   x = "group1",
+                   vjust = 2,
+                   remove.bracket=TRUE,
+                   size = 12) +
+        theme_classic() +
+        theme(axis.text = element_text(angle = 90, color = "black"),
+              text = element_text(size = 23))
 
-ggsave(here("figures","qPCR","IL1B.jpg"), dpi = 300)
+IL1B_plot
+
+ggsave(here("figures","qPCR","IL1B_dunnett.jpg"), dpi = 300, width = 10, height = 10)
 ```
 
 ***
 
 ### IL1B Stats
 ```{r echo = F}
-tukey
+datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
+
+datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
+        formatRound(columns = c("mean","sd"), digits = 2)
+
 ```
 
 ***
@@ -185,35 +197,56 @@ tukey
 ```{r echo = F}
 anova <- aov(IL6 ~ treatment, data = data)
 p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
-# Tukey's test
-tukey <- TukeyHSD(anova)
 
-# compact letter display
-cld <- multcompLetters4(anova, tukey)
+# Contrast with Dunnett
+emm_contrasts <- anova %>%
+  emmeans("treatment") %>%
+  contrast("trt.vs.ctrl", infer = c(TRUE, TRUE)) %>%
+  as_tibble() %>%
+  mutate(p.value.round = insight::format_p(p.value, name = NULL,),
+         p.value.star = insight::format_p(p.value, name = NULL, stars_only = TRUE)) 
 
-dt <- group_by(data, treatment) %>%
-        summarise(mean=mean(IL6, na.rm = TRUE), sd = sd(IL6, na.rm = TRUE)) %>%
-        arrange(desc(mean))
+emm_contrasts_split <- emm_contrasts
+## Split string
+emm_contrasts_split[c('group1', 'group2')] <- str_split_fixed(emm_contrasts_split$contrast, ' - ', 2) 
 
-# extracting the compact letter display and adding to the Tk table
-cld <- as.data.frame.list(cld$treatment)
-dt$cld <- cld$Letters
+## Data Summary ##
+dt <- data %>%
+  group_by(treatment) %>%
+        summarize(mean = mean(IL6),
+                  sd = sd(IL6))
 
-ggplot(dt, aes(treatment, mean)) + 
+IL6_plot <- ggplot(dt, aes(treatment, mean)) + 
         geom_bar(stat = "identity", aes(fill = mean), show.legend = FALSE) +
         geom_errorbar(aes(ymin = mean-sd, ymax=mean + sd), width = 0.2) +
+        
         labs(x = "Treatment", y = expression(Log[2]*"FC"), title = "IL6", subtitle = paste("ANOVA: P","=", paste0(p_value, collapse = NULL))) +
-        geom_text(aes(label = cld, y = mean + sd), vjust = -0.5) +
         theme_classic() +
         theme(axis.text.x = element_text(angle = 90, color = "black")) +
-  scale_fill_continuous(high = "#132B43", low = "#56B1F7") 
+  scale_fill_continuous(high = "#132B43", low = "#56B1F7") +
+        # letters
+stat_pvalue_manual(data = emm_contrasts_split,
+                   y.position = rep(7,12),
+                   label = "p.value.star",
+                   x = "group1",
+                   vjust = 2,
+                   remove.bracket=TRUE,
+                   size = 12) +
+        theme_classic() +
+        theme(axis.text = element_text(angle = 90, color = "black"),
+              text = element_text(size = 25)) 
 
-ggsave(here("figures","qPCR","IL6.jpg"), dpi = 300)
+IL6_plot
+
+ggsave(here("figures","qPCR","IL6_dunnett.jpg"), dpi = 300, width = 10, height = 10)
 ```
 
 ### IL6 Stats
 ```{r echo = F}
-tukey
+datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
+
+datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
+        formatRound(columns = c("mean","sd"), digits = 2)
 ```
 
 ***
@@ -226,35 +259,56 @@ tukey
 ### TNFA
 anova <- aov(TNFA ~ treatment, data = data)
 p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
-# Tukey's test
-tukey <- TukeyHSD(anova)
 
-# compact letter display
-cld <- multcompLetters4(anova, tukey)
+# Contrast with Dunnett
+emm_contrasts <- anova %>%
+  emmeans("treatment") %>%
+  contrast("trt.vs.ctrl", infer = c(TRUE, TRUE)) %>%
+  as_tibble() %>%
+  mutate(p.value.round = insight::format_p(p.value, name = NULL,),
+         p.value.star = insight::format_p(p.value, name = NULL, stars_only = TRUE)) 
 
-dt <- group_by(data, treatment) %>%
-        summarise(mean=mean(TNFA, na.rm = TRUE), sd = sd(TNFA, na.rm = TRUE)) %>%
-        arrange(desc(mean))
+emm_contrasts_split <- emm_contrasts
+## Split string
+emm_contrasts_split[c('group1', 'group2')] <- str_split_fixed(emm_contrasts_split$contrast, ' - ', 2) 
 
-# extracting the compact letter display and adding to the Tk table
-cld <- as.data.frame.list(cld$treatment)
-dt$cld <- cld$Letters
+## Data Summary ##
+dt <- data %>%
+  group_by(treatment) %>%
+        summarize(mean = mean(TNFA),
+                  sd = sd(TNFA))
 
-ggplot(dt, aes(treatment, mean)) + 
+
+TNFA_plot <- ggplot(dt, aes(treatment, mean)) + 
         geom_bar(stat = "identity", aes(fill = mean), show.legend = FALSE) +
         geom_errorbar(aes(ymin = mean-sd, ymax=mean + sd), width = 0.2) +
         labs(x = "Treatment", y = expression(Log[2]*"FC"), title = "TNFA", subtitle = paste("ANOVA: P","=", paste0(p_value, collapse = NULL))) +
-        geom_text(aes(label = cld, y = mean + sd), vjust = -0.5) +
         theme_classic() +
         theme(axis.text.x = element_text(angle = 90, color = "black")) +
-  scale_fill_continuous(high = "#132B43", low = "#56B1F7")
+  scale_fill_continuous(high = "#132B43", low = "#56B1F7") +
+        
+stat_pvalue_manual(data = emm_contrasts_split,
+                   y.position = rep(7,12),
+                   label = "p.value.star",
+                   x = "group1",
+                   vjust = 2,
+                   remove.bracket=TRUE,
+                   size = 12) +
+        theme_classic() +
+        theme(axis.text = element_text(angle = 90, color = "black"),
+              text = element_text(size = 25)) 
 
-ggsave(here("figures","qPCR","TNFa.jpg"), dpi = 300)
+TNFA_plot
+
+ggsave(here("figures","qPCR","TNFa_dunnett.jpg"), dpi = 300, width = 10, height = 10)
 ```
 
 ### TNFa Stats
 ```{r echo = F}
-tukey
+datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
+
+datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
+        formatRound(columns = c("mean","sd"), digits = 2)
 ```
 
 
@@ -267,156 +321,94 @@ tukey
 ### APOE
 anova <- aov(APOE ~ treatment, data = data)
 p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
-# Tukey's test
-tukey <- TukeyHSD(anova)
 
-# compact letter display
-cld <- multcompLetters4(anova, tukey)
+# Contrast with Dunnett
+emm_contrasts <- anova %>%
+  emmeans("treatment") %>%
+  contrast("trt.vs.ctrl", infer = c(TRUE, TRUE)) %>%
+  as_tibble() %>%
+  mutate(p.value.round = insight::format_p(p.value, name = NULL,),
+         p.value.star = insight::format_p(p.value, name = NULL, stars_only = TRUE)) 
 
-dt <- group_by(data, treatment) %>%
-        summarise(mean=mean(APOE, na.rm = TRUE), sd = sd(APOE, na.rm = TRUE)) %>%
-        arrange(desc(mean))
+emm_contrasts_split <- emm_contrasts
+## Split string
+emm_contrasts_split[c('group1', 'group2')] <- str_split_fixed(emm_contrasts_split$contrast, ' - ', 2) 
 
-# extracting the compact letter display and adding to the Tk table
-cld <- as.data.frame.list(cld$treatment)
-dt$cld <- cld$Letters
+## Data Summary ##
+dt <- data %>%
+  group_by(treatment) %>%
+        summarize(mean = mean(APOE),
+                  sd = sd(APOE))
 
-ggplot(dt, aes(treatment, mean)) + 
+
+APOE_plot <- ggplot(dt, aes(treatment, mean)) + 
         geom_bar(stat = "identity", aes(fill = mean), show.legend = FALSE) +
         geom_errorbar(aes(ymin = mean-sd, ymax=mean + sd), width = 0.2) +
         labs(x = "Treatment", y = expression(Log[2]*"FC"), title = "APOE", subtitle = paste("ANOVA: P","=", paste0(p_value, collapse = NULL))) +
-        geom_text(aes(label = cld, y = mean + sd), vjust = -0.5) +
         theme_classic() +
         theme(axis.text.x = element_text(angle = 90, color = "black")) +
-  scale_fill_continuous(high = "#132B43", low = "#56B1F7")
+  scale_fill_continuous(high = "#132B43", low = "#56B1F7") +
+        stat_pvalue_manual(data = emm_contrasts_split,
+                   y.position = rep(5,12),
+                   label = "p.value.star",
+                   x = "group1",
+                   vjust = 2,
+                   remove.bracket=TRUE,
+                   size = 12) +
+        theme_classic() +
+        theme(axis.text = element_text(angle = 90, color = "black"),
+              text = element_text(size = 25)) 
 
-ggsave(here("figures","qPCR","APOE.jpg"), dpi = 300)
+APOE_plot
+
+ggsave(here("figures","qPCR","APOE_dunnett.jpg"), dpi = 300, width = 10, height = 10)
 ```
 
 ### APOE Stats
 ```{r echo = F}
-tukey
+datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
+
+datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
+        formatRound(columns = c("mean","sd"), digits = 2)
 ```
 
 
 ***
 
-## CD33 {.tabset .tabset-pills}
+## Combine Images
+```{r}
+combine_plot <- IL1B_plot + IL6_plot + TNFA_plot + APOE_plot
 
-### CD33 Plot
-```{r echo = F}
-### CD33
-anova <- aov(CD33 ~ treatment, data = data)
-p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
-# Tukey's test
-tukey <- TukeyHSD(anova)
+cowplot::plot_grid(IL1B_plot + theme(axis.title.x = element_blank(),
+                                     axis.text.x = element_blank()),
+                   IL6_plot + theme(axis.title.x = element_blank(),
+                                    axis.text.x = element_blank(),
+                                    axis.ticks.y = element_blank(),
+                                    axis.title.y = element_blank()),
+                   TNFA_plot,
+                   APOE_plot + theme(axis.title.y = element_blank() ),
+                   nrow = 2,
+                   labels = "auto",
+                   align = "v")
 
-# compact letter display
-cld <- multcompLetters4(anova, tukey)
 
-dt <- group_by(data, treatment) %>%
-        summarise(mean=mean(CD33, na.rm = TRUE), sd = sd(CD33, na.rm = TRUE)) %>%
-        arrange(desc(mean))
+patchwork = IL1B_plot + IL6_plot + TNFA_plot + APOE_plot
 
-# extracting the compact letter display and adding to the Tk table
-cld <- as.data.frame.list(cld$treatment)
-dt$cld <- cld$Letters
+# Remove title from second subplot
+patchwork[[1]] = patchwork[[1]] + theme(axis.title.x = element_blank(),
+                                     axis.text.x = element_blank())
 
-ggplot(dt, aes(treatment, mean)) + 
-        geom_bar(stat = "identity", aes(fill = mean), show.legend = FALSE) +
-        geom_errorbar(aes(ymin = mean-sd, ymax=mean + sd), width = 0.2) +
-        labs(x = "Treatment", y = expression(Log[2]*"FC"), title = "CD33", subtitle = paste("ANOVA: P","=", paste0(p_value, collapse = NULL))) +
-        geom_text(aes(label = cld, y = mean + sd), vjust = -0.5) +
-        theme_classic() +
-        theme(axis.text.x = element_text(angle = 90, color = "black")) +
-  scale_fill_continuous(high = "#132B43", low = "#56B1F7")
+patchwork[[2]] = patchwork[[2]] + theme(axis.title.x = element_blank(),
+                                    axis.text.x = element_blank(),
+                                    axis.ticks.y = element_blank(),
+                                    axis.title.y = element_blank())
 
-ggsave(here("figures","qPCR","CD33.jpg"), dpi = 300)
+# Remove title from third subplot
+patchwork[[4]] = patchwork[[4]] + theme(axis.title.y = element_blank() )
+
+patchwork + plot_annotation(tag_levels = "A")
+
+ggsave(here("figures","qPCR","combine_qPCR_dunnett.jpg"), dpi = 300, width = 18, height = 14)
 ```
 
-### CD33 Stats
-```{r echo = F}
-tukey
-```
-
-
-***
-
-## ST6GALNAC3 {.tabset .tabset-pills}
-
-### ST6GALNAC3 Plot 
-```{r echo = F}
-anova <- aov(ST6GALNAC3 ~ treatment, data = data)
-p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
-# Tukey's test
-tukey <- TukeyHSD(anova)
-
-# compact letter display
-cld <- multcompLetters4(anova, tukey)
-
-dt <- group_by(data, treatment) %>%
-        summarise(mean=mean(ST6GALNAC3, na.rm = TRUE), sd = sd(ST6GALNAC3, na.rm = TRUE)) %>%
-        arrange(desc(mean))
-
-# extracting the compact letter display and adding to the Tk table
-cld <- as.data.frame.list(cld$treatment)
-dt$cld <- cld$Letters
-
-ggplot(dt, aes(treatment, mean)) + 
-        geom_bar(stat = "identity", aes(fill = mean), show.legend = FALSE) +
-        geom_errorbar(aes(ymin = mean-sd, ymax=mean + sd), width = 0.2) +
-        labs(x = "Treatment", y = expression(Log[2]*"FC"), title = "ST6GALNAC3", subtitle = paste("ANOVA: P","=", paste0(p_value, collapse = NULL))) +
-        geom_text(aes(label = cld, y = mean + sd), vjust = -0.5) +
-        theme_classic() +
-        theme(axis.text.x = element_text(angle = 90, color = "black")) +
-  scale_fill_continuous(high = "#132B43", low = "#56B1F7")
-
-ggsave(here("figures","qPCR","ST6GALNAC3.jpg"), dpi = 300)
-```
-
-### ST6GALNAC3 Stats
-```{r echo = F}
-tukey
-```
-
-
-***
-
-## TREM2 {.tabset .tabset-pills}
-
-
-### TREM2 Plot
-```{r echo = F}
-anova <- aov(TREM2 ~ treatment, data = data)
-p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
-# Tukey's test
-tukey <- TukeyHSD(anova)
-
-# compact letter display
-cld <- multcompLetters4(anova, tukey)
-
-dt <- group_by(data, treatment) %>%
-        summarise(mean=mean(TREM2, na.rm = TRUE), sd = sd(TREM2, na.rm = TRUE)) %>%
-        arrange(desc(mean))
-
-# extracting the compact letter display and adding to the Tk table
-cld <- as.data.frame.list(cld$treatment)
-dt$cld <- cld$Letters
-
-ggplot(dt, aes(treatment, mean)) + 
-        geom_bar(stat = "identity", aes(fill = mean), show.legend = FALSE) +
-        geom_errorbar(aes(ymin = mean-sd, ymax=mean + sd), width = 0.2) +
-        labs(x = "Treatment", y = expression(Log[2]*"FC"), title = "TREM2", subtitle = paste("ANOVA: P","=", paste0(p_value, collapse = NULL))) +
-        geom_text(aes(label = cld, y = mean + sd), vjust = -0.5) +
-        theme_classic() +
-        theme(axis.text.x = element_text(angle = 90, color = "black")) +
-  scale_fill_continuous(high = "#132B43", low = "#56B1F7")
-
-ggsave(here("figures","qPCR","TREM2.jpg"), dpi = 300)
-```
-
-### TREM2 Stats
-```{r echo = F}
-tukey
-```
 
