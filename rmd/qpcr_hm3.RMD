@@ -40,22 +40,47 @@ data_summary <- data %>%
 
 ## Heatmap
 ```{r echo = F, warning = F}
-data_summary_df <- as.data.frame(data_summary)
+data_summary_df <- as.data.frame(data_summary) %>%
+        subset(select = -c(CD33, ST6GALNAC3, TREM2))
 
-rownames(data_summary_df) <- data_summary_df$treatment
+## As Factor and reoder, and assign name rename
+data_summary_df$treatment <- factor(data_summary_df$treatment, levels = c("abo", "cho", "fru","lps", "abo_cho","abo_fru", "abo_lps", "cho_lps", "fru_cho","fru_lps", "abo_cho_lps","abo_fru_cho_lps"))
 
-rownames(data_summary_df) <- c("AβO", "AβO/Chol", "AβO/Chol/LPS", "AβO/Fruc",
-                               "AβO/Fruc/Chol/LPS","AβO/LPS","Chol","Chol/LPS",
-                               "Fruc","Fruc/Chol","Fruc/LPS","LPS")
+## New Dataframe reordered
+data_summary_df_reorder <- data_summary_df[order(data_summary_df$treatment), ]
 
-data_summary_df$treatment <- NULL
+## Assign Names to Levels
+levels(data_summary_df_reorder$treatment) <- list(AβO = "abo",
+                                                     Cholesterol = "cho",
+                                                     Fructose = "fru",
+                                                     LPS = "lps",
+                                                     AβO_Cholesterol = "abo_cho",
+                                                     AβO_Fructose = "abo_fru",
+                                                     AβO_LPS = "abo_lps",
+                                                     Cholesterol_LPS = "cho_lps",
+                                                     Fructose_Cholesterol = "fru_cho",
+                                                     Fructose_LPS = "fru_lps",
+                                                     AβO_Cholesterol_LPS = "abo_cho_lps",
+                                                     AβO_Fru_Chol_LPS = "abo_fru_cho_lps")
 
-pheatmap(data_summary_df, main = expression("Gene Expression "*Log[2]*"FC"),  display_numbers = TRUE,
+
+rownames(data_summary_df_reorder) <- data_summary_df_reorder$treatment
+
+
+
+
+data_summary_df_reorder$treatment <- NULL
+
+pheatmap(data_summary_df_reorder, main = expression("Gene Expression "*Log[2]*"FC"),  display_numbers = TRUE,
          border_color = "black",
-         number_color = "black", filename = here("figures","qPCR","heatmap.jpg"))
+         number_color = "black", filename = here("figures","qPCR","heatmap_new.jpg"))
 
-
+pheatmap(data_summary_df_reorder, main = expression("Gene Expression "*Log[2]*"FC"),  display_numbers = TRUE,
+         border_color = "black",
+         number_color = "black")
 ```
+
+![](../figures/qPCR/heatmap_new.jpg)
 
 
 ```{r include = F}
