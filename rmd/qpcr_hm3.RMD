@@ -87,20 +87,17 @@ pheatmap(data_summary_df_reorder, main = expression("Gene Expression "*Log[2]*"F
 ## Run first before qPCR Barplot
 ## Log2 Transform - Remove to not use
 data <- data %>%
+        subset(select = -c(CD33, ST6GALNAC3, TREM2)) %>%
   mutate(IL1B = log2(IL1B),
          IL6 = log2(IL6),
          TNFA = log2(TNFA),
-         APOE = log2(APOE),
-         CD33 = log2(CD33),
-         ST6GALNAC3 = log2(ST6GALNAC3),
-         TREM2 = log2(TREM2))
+         APOE = log2(APOE)) 
 ```
 
 
 ```{r include = F}
 
 ## Rename Factors
-data$treatment <- as.factor(data$treatment)
 
 data$treatment <- factor(data$treatment, levels = c("control", "abo", "cho", "fru","lps", "abo_cho","abo_fru", "abo_lps", "cho_lps", "fru_cho","fru_lps", "abo_cho_lps","abo_fru_cho_lps"))
 
@@ -110,6 +107,28 @@ data$treatment <- do.call(
                                          c("Control","AβO", "Chol","Fruc", "LPS", "AβO/Chol", "AβO/Fruc", "AβO/LPS", "Chol/LPS", "Fruc/Chol", "Fruc/LPS", "AβO/Chol/LPS", "AβO/Fruc/Chol/LPS")))
 )
 
+
+
+
+data$treatment <- factor(data$treatment, levels = c("control","abo", "cho", "fru","lps", "abo_cho","abo_fru", "abo_lps", "cho_lps", "fru_cho","fru_lps", "abo_cho_lps","abo_fru_cho_lps"))
+
+## New Dataframe reordered
+data <- data[order(data$treatment), ]
+
+## Assign Names to Levels
+levels(data$treatment) <- list(Control = "control",
+                               AβO = "abo",
+                               Cholesterol = "cho",
+                               Fructose = "fru",
+                               LPS = "lps",
+                               AβO_Cholesterol = "abo_cho",
+                               AβO_Fructose = "abo_fru",
+                               AβO_LPS = "abo_lps",
+                               Cholesterol_LPS = "cho_lps",
+                               Fructose_Cholesterol = "fru_cho",
+                               Fructose_LPS = "fru_lps",
+                               AβO_Cholesterol_LPS = "abo_cho_lps",
+                               AβO_Fru_Chol_LPS = "abo_fru_cho_lps")
 
 
 ```
