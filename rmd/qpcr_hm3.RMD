@@ -131,7 +131,7 @@ levels(data$treatment) <- list(Control = "control",
 ## IL1B {.tabset .tabset-pills}
 
 ### IL1B Plot 
-```{r echo = F}
+```{r echo = F, fig.dim = c(18, 14)}
 anova <- aov(IL1B ~ treatment, data = data)
 p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
 
@@ -183,8 +183,9 @@ ggsave(here("figures","qPCR","IL1B_dunnett.jpg"), dpi = 300, width = 10, height 
 ```{r echo = F}
 datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
 
-datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
+datatable(dt, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
         formatRound(columns = c("mean","sd"), digits = 2)
+
 
 ```
 
@@ -194,7 +195,7 @@ datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")
 
 ### IL6 Plot 
 
-```{r echo = F}
+```{r echo = F, fig.dim = c(18, 14)}
 anova <- aov(IL6 ~ treatment, data = data)
 p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
 
@@ -245,7 +246,7 @@ ggsave(here("figures","qPCR","IL6_dunnett.jpg"), dpi = 300, width = 10, height =
 ```{r echo = F}
 datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
 
-datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
+datatable(dt, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
         formatRound(columns = c("mean","sd"), digits = 2)
 ```
 
@@ -254,7 +255,7 @@ datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")
 ## TNFa {.tabset .tabset-pills}
 
 ### TNFa 
-```{r echo = F}
+```{r echo = F, fig.dim = c(18, 14)}
 
 ### TNFA
 anova <- aov(TNFA ~ treatment, data = data)
@@ -307,7 +308,7 @@ ggsave(here("figures","qPCR","TNFa_dunnett.jpg"), dpi = 300, width = 10, height 
 ```{r echo = F}
 datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
 
-datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
+datatable(dt, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
         formatRound(columns = c("mean","sd"), digits = 2)
 ```
 
@@ -317,7 +318,7 @@ datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")
 ## APOE {.tabset .tabset-pills}
 
 ### APOE Plot
-```{r echo = F}
+```{r echo = F, fig.dim = c(18, 14)}
 ### APOE
 anova <- aov(APOE ~ treatment, data = data)
 p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
@@ -368,7 +369,7 @@ ggsave(here("figures","qPCR","APOE_dunnett.jpg"), dpi = 300, width = 10, height 
 ```{r echo = F}
 datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
 
-datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
+datatable(dt, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
         formatRound(columns = c("mean","sd"), digits = 2)
 ```
 
@@ -376,21 +377,7 @@ datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")
 ***
 
 ## Combine Images
-```{r}
-combine_plot <- IL1B_plot + IL6_plot + TNFA_plot + APOE_plot
-
-cowplot::plot_grid(IL1B_plot + theme(axis.title.x = element_blank(),
-                                     axis.text.x = element_blank()),
-                   IL6_plot + theme(axis.title.x = element_blank(),
-                                    axis.text.x = element_blank(),
-                                    axis.ticks.y = element_blank(),
-                                    axis.title.y = element_blank()),
-                   TNFA_plot,
-                   APOE_plot + theme(axis.title.y = element_blank() ),
-                   nrow = 2,
-                   labels = "auto",
-                   align = "v")
-
+```{r echo = F, fig.dim = c(18, 14)}
 
 patchwork = IL1B_plot + IL6_plot + TNFA_plot + APOE_plot
 
