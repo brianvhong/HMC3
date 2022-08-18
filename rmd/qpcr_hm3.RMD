@@ -23,67 +23,13 @@ pacman::p_load(here,
                ggpubr,
                DT,
                egg,
-               patchwork) 
+               patchwork,
+               purrr) 
 
 data <- read.csv(here("tidy","qpcr_hmc3.csv"))
 
-data_summary <- data %>%
-        group_by(treatment) %>%
-        summarize(IL1B = log2(mean(IL1B, na.rm = TRUE)),
-                  IL6 = log2(mean(IL6, na.rm = TRUE)),
-                  TNFA = log2(mean(TNFA, na.rm = TRUE)),
-                  APOE = log2(mean(APOE, na.rm = TRUE)),
-                  CD33 = log2(mean(CD33, na.rm = TRUE)),
-                  ST6GALNAC3 = log2(mean(ST6GALNAC3, na.rm = TRUE)),
-                  TREM2 = log2(mean(TREM2, na.rm = TRUE))) %>%
-        filter(!(treatment == "control"))
 
 ```
-
-
-## Heatmap
-```{r echo = F, warning = F}
-data_summary_df <- as.data.frame(data_summary) %>%
-        subset(select = -c(CD33, ST6GALNAC3, TREM2))
-
-## As Factor and reoder, and assign name rename
-data_summary_df$treatment <- factor(data_summary_df$treatment, levels = c("abo", "cho", "fru","lps", "abo_cho","abo_fru", "abo_lps", "cho_lps", "fru_cho","fru_lps", "abo_cho_lps","abo_fru_cho_lps"))
-
-## New Dataframe reordered
-data_summary_df_reorder <- data_summary_df[order(data_summary_df$treatment), ]
-
-## Assign Names to Levels
-levels(data_summary_df_reorder$treatment) <- list(AβO = "abo",
-                                                     Cholesterol = "cho",
-                                                     Fructose = "fru",
-                                                     LPS = "lps",
-                                                     AβO_Cholesterol = "abo_cho",
-                                                     AβO_Fructose = "abo_fru",
-                                                     AβO_LPS = "abo_lps",
-                                                     Cholesterol_LPS = "cho_lps",
-                                                     Fructose_Cholesterol = "fru_cho",
-                                                     Fructose_LPS = "fru_lps",
-                                                     AβO_Cholesterol_LPS = "abo_cho_lps",
-                                                     AβO_Fru_Chol_LPS = "abo_fru_cho_lps")
-
-
-rownames(data_summary_df_reorder) <- data_summary_df_reorder$treatment
-
-
-
-
-data_summary_df_reorder$treatment <- NULL
-
-pheatmap(data_summary_df_reorder, main = expression("Gene Expression "*Log[2]*"FC"),  display_numbers = TRUE,
-         border_color = "black",
-         number_color = "black", filename = here("figures","qPCR","heatmap_new.jpg"))
-
-pheatmap(data_summary_df_reorder, main = expression("Gene Expression "*Log[2]*"FC"),  display_numbers = TRUE,
-         border_color = "black",
-         number_color = "black")
-```
-
-![](../figures/qPCR/heatmap_new.jpg)
 
 
 ```{r include = F}
@@ -175,6 +121,12 @@ stat_pvalue_manual(data = emm_contrasts_split,
 IL1B_plot
 
 ggsave(here("figures","qPCR","IL1B_dunnett.jpg"), dpi = 300, width = 10, height = 10)
+
+
+## Extract P-value variable for heatmap
+IL1B_heat <- emm_contrasts_split %>%
+        select(group1, p.value.star) %>%
+        rename(IL1B = p.value.star)
 ```
 
 ***
@@ -240,6 +192,11 @@ stat_pvalue_manual(data = emm_contrasts_split,
 IL6_plot
 
 ggsave(here("figures","qPCR","IL6_dunnett.jpg"), dpi = 300, width = 10, height = 10)
+
+## Extract P-value variable for heatmap
+IL6_heat <- emm_contrasts_split %>%
+        select(group1, p.value.star) %>%
+        rename(IL6 = p.value.star)
 ```
 
 ### IL6 Stats
@@ -302,6 +259,12 @@ stat_pvalue_manual(data = emm_contrasts_split,
 TNFA_plot
 
 ggsave(here("figures","qPCR","TNFa_dunnett.jpg"), dpi = 300, width = 10, height = 10)
+
+
+## Extract P-value variable for heatmap
+TNFA_heat <- emm_contrasts_split %>%
+        select(group1, p.value.star) %>%
+        rename(TNFA = p.value.star)
 ```
 
 ### TNFa Stats
@@ -341,7 +304,7 @@ dt <- data %>%
         summarize(mean = mean(APOE),
                   sd = sd(APOE))
 
-
+# Plot
 APOE_plot <- ggplot(dt, aes(treatment, mean)) + 
         geom_bar(stat = "identity", aes(fill = mean), show.legend = FALSE) +
         geom_errorbar(aes(ymin = mean-sd, ymax=mean + sd), width = 0.2) +
@@ -363,6 +326,11 @@ APOE_plot <- ggplot(dt, aes(treatment, mean)) +
 APOE_plot
 
 ggsave(here("figures","qPCR","APOE_dunnett.jpg"), dpi = 300, width = 10, height = 10)
+
+## Extract P-value variable for heatmap
+APOE_heat <- emm_contrasts_split %>%
+        select(group1, p.value.star) %>%
+        rename(APOE = p.value.star)
 ```
 
 ### APOE Stats
@@ -397,5 +365,44 @@ patchwork + plot_annotation(tag_levels = "A")
 
 ggsave(here("figures","qPCR","combine_qPCR_dunnett.jpg"), dpi = 300, width = 18, height = 14)
 ```
+
+
+## Heatmap
+```{r include = F, warning = F}
+# data has been log transformed above already
+data_summary <- data %>%
+        group_by(treatment) %>%
+        summarize(IL1B = mean(IL1B, na.rm = TRUE),
+                  IL6 = mean(IL6, na.rm = TRUE),
+                  TNFA = mean(TNFA, na.rm = TRUE),
+                  APOE = mean(APOE, na.rm = TRUE)) %>%
+        filter(!(treatment == "Control"))
+
+data_summary_df <- data_summary
+
+## Remove treatment variabel
+data_summary_df$treatment <- NULL
+
+## Rename Row to treatment
+rownames(data_summary_df) <- data_summary$treatment
+
+
+
+## Combine significance into data frame
+significant_heat <- purrr::reduce(list(IL1B_heat, IL6_heat, TNFA_heat, APOE_heat), dplyr::left_join, by = 'group1')
+significant_heat_df <- significant_heat
+significant_heat_df$group1 <- NULL
+rownames(significant_heat_df) <- significant_heat$group1
+```
+
+
+```{r echo = F, warning = F}
+
+pheatmap(data_summary_df, main = expression("Gene Expression "*Log[2]*"FC"),  display_numbers = significant_heat_df,
+         border_color = "black",
+         number_color = "black", fontsize_number=20,
+         annotation_legend = TRUE, filename = here("figures","qPCR","heatmap_new.jpg"))
+```
+
 
 
