@@ -1,0 +1,81 @@
+---
+title: "ATP QC"
+author: "Oscar and Brian"
+date: "2022-09-12"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 2
+---
+
+
+```{r include = F}
+## Packages
+if(!any(rownames(installed.packages()) == "pacman")){
+   install.packages("pacman")
+}
+
+pacman::p_load(here,
+               tidyverse,
+               DT)
+```
+
+
+
+```{r include = F}
+## Read csv
+ATP.assay <- read_csv(here("tidy","HMC3 ATP Compiled.csv"), skip = 2)
+```
+
+
+## Samples
+```{r echo = F}
+ATP.assay <- ATP.assay %>%
+        mutate(norm_ATP = `Calculated Fluorescence (nmol/well)`/Protein_ug_mL)
+
+datatable(ATP.assay, colnames = c("Treatment", "Set","Calculated Fluorescence (nmol/well)","Protein (ug/mL)","Norm ApoE (nmol/well) per protein")) %>%
+        formatRound(columns = c("Protein_ug_mL","Calculated Fluorescence (nmol/well)","norm_ATP"), digits = 3)
+```
+
+
+
+## Data Summary 
+
+### Non-normalize to protein
+```{r echo = F}
+ATP.assay.sum <- ATP.assay %>%
+        group_by(Treatment, Set) %>%
+        summarize(mean_ATP = mean(`Calculated Fluorescence (nmol/well)`),
+                  sd_ATP= sd(`Calculated Fluorescence (nmol/well)`),
+                  cv_ATP = sd_ATP/mean_ATP * 100)
+
+datatable(ATP.assay.sum, colnames = c("Treatment","Set", "ATP (nmol/well)","SD","CV (%)")) %>%
+        formatRound(columns = c("mean_ATP", "sd_ATP","cv_ATP"), digits = 3)
+```
+
+
+
+### Normalize to protein
+```{r echo = F}
+norm_ATP.assay.sum <- ATP.assay %>%
+        group_by(Treatment, Set) %>%
+        summarize(norm_mean_ATP = mean(norm_ATP),
+                  norm_sd_ATP = sd(norm_ATP),
+                  norm_cv_ATP = norm_sd_ATP/norm_mean_ATP * 100)
+
+datatable(norm_ATP.assay.sum, colnames = c("Treatment","Set","Norm ATP (nmol/well)","SD","CV (%)")) %>%
+        formatRound(columns = c("norm_mean_ATP", "norm_sd_ATP","norm_cv_ATP"), digits = 3)
+```
+
+> Much more variable with protein normalization. 
+
+
+## Summary
+
+> Need to double check numbers
+
+## Save rdata
+```{r}
+save(ATP.assay, ATP.assay.sum, norm_ATP.assay.sum, file = here("rdata","ATP_tidy.rdata"))
+```
