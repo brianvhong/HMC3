@@ -222,7 +222,7 @@ ggplot() +
 # Color Bar Plot (Discrete)
   scale_fill_manual(values=as.vector(kelly(20))) + 
         
-        labs(x = "Treatment", y = expression(paste("Normalized ATP, ","nmol/ug Protein")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
+        labs(x = "Treatment", y = expression(paste("Normalized ATP, ","nmol/ug/uL Protein")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
         
 # letters
 stat_pvalue_manual(data = emm_contrasts_split,
@@ -245,7 +245,7 @@ stat_pvalue_manual(data = emm_contrasts_split,
 
 
 
-### Stats - Dunnett's test (non-normalize to protein)
+### Stats - Dunnett's test (Normalize to protein)
 
 ```{r echo = F}
 datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
