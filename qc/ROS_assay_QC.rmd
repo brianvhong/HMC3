@@ -1,0 +1,82 @@
+---
+title: "ROS QC"
+author: "Brian"
+date: "2022-10-07"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 2
+---
+
+```{r include = F}
+## Packages
+if(!any(rownames(installed.packages()) == "pacman")){
+   install.packages("pacman")
+}
+
+pacman::p_load(here,
+               tidyverse,
+               DT)
+```
+
+
+
+```{r include = F}
+## Read csv
+ROS.assay <- read_csv(here("tidy","HMC3 ROS Compiled.csv"))
+```
+
+
+## Samples
+```{r echo = F}
+ROS.assay <- ROS.assay %>%
+        mutate(norm_ROS = `Recorded Fluorescence (Log,2)`/Protein_ug_mL)
+
+datatable(ROS.assay, colnames = c("Treatment", "Set","Calculated Fluorescence","Protein (ug/mL)","Norm ROS per protein")) %>%
+        formatRound(columns = c("Protein_ug_mL","Recorded Fluorescence (Log,2)","norm_ROS"), digits = 3)
+```
+
+
+
+## Data Summary 
+
+### Non-normalize to protein
+```{r echo = F}
+ROS.assay.sum <- ROS.assay %>%
+        group_by(Treatment, Set) %>%
+        summarize(mean_ROS = mean(`Recorded Fluorescence (Log,2)`),
+                  sd_ROS= sd(`Recorded Fluorescence (Log,2)`),
+                  cv_ROS = sd_ROS/mean_ROS * 100)
+
+datatable(ROS.assay.sum, colnames = c("Treatment","Set", "ROS Fluorescence","SD","CV (%)")) %>%
+        formatRound(columns = c("mean_ROS", "sd_ROS","cv_ROS"), digits = 3)
+```
+
+> CV looks pretty good with the non-normalized values. 
+
+***
+
+### Normalize to protein
+```{r echo = F}
+norm_ROS.assay.sum<- ROS.assay %>%
+        group_by(Treatment, Set) %>%
+        summarize(norm_mean_ROS = mean(norm_ROS),
+                  norm_sd_ROS = sd(norm_ROS),
+                  norm_cv_ROS = norm_sd_ROS/norm_mean_ROS * 100)
+
+datatable(norm_ROS.assay.sum, colnames = c("Treatment","Set","Norm ROS Fluorescence","SD","CV (%)")) %>%
+        formatRound(columns = c("norm_mean_ROS", "norm_sd_ROS","norm_cv_ROS"), digits = 3)
+```
+
+> Much more variable with protein normalization. 
+
+
+## Summary
+
+> I Recommend the non-normalized values
+
+## Save rdata
+```{r}
+#save(ROS.assay, ROS.assay.sum, norm_ROS.assay.sum, file = here("rdata","ROS_tidy.rdata"))
+```
