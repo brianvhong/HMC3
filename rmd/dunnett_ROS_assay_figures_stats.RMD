@@ -83,7 +83,7 @@ ROS.assay_reorder_3 <- ROS.assay_reorder %>%
 ```
 
 
-## ATP Content Experiment Combined {.tabset .tabset-fade .tabset-pills}
+## ROS Experiment Combined {.tabset .tabset-fade .tabset-pills}
 
 
 ### Figure (non-normalize to protein)
@@ -134,7 +134,7 @@ ggplot() +
 # Color Bar Plot (Discrete)
   scale_fill_manual(values=as.vector(kelly(20))) + 
         
-        labs(x = "Treatment", y = expression(paste("ROS, ","Fluorescence")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
+        labs(x = "Treatment", y = expression(paste("ROS, ",Log[2],"(Fluorescence)")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
         
 # letters
 stat_pvalue_manual(data = emm_contrasts_split,
@@ -171,7 +171,7 @@ datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")
 
 
 
-## Normalized ATP Content Experiment Combined {.tabset .tabset-fade .tabset-pills}
+## Normalized ROS Experiment Combined {.tabset .tabset-fade .tabset-pills}
 
 
 ### Figure (Normalize to protein)
@@ -222,7 +222,7 @@ ggplot() +
 # Color Bar Plot (Discrete)
   scale_fill_manual(values=as.vector(kelly(20))) + 
         
-        labs(x = "Treatment", y = expression(paste("Normalized ROS, ","Fluorescence")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
+        labs(x = "Treatment", y = expression(paste("ROS, ",Log[2],"(Fluorescence)")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
         
 # letters
 stat_pvalue_manual(data = emm_contrasts_split,
