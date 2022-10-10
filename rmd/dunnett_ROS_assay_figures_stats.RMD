@@ -80,6 +80,10 @@ ROS.assay_reorder_2 <- ROS.assay_reorder %>%
 
 ROS.assay_reorder_3 <- ROS.assay_reorder %>%
         filter(Set %in% "3")
+
+
+ROS.assay_reorder_2_3 <- ROS.assay_reorder %>%
+        filter(Set %in% c("2","3"))
 ```
 
 
@@ -246,6 +250,350 @@ stat_pvalue_manual(data = emm_contrasts_split,
 
 
 ### Stats - Dunnett's test (Normalize to protein)
+
+```{r echo = F}
+datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
+
+datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
+        formatRound(columns = c("mean","sd"), digits = 2)
+```
+
+
+
+
+## ROS Experiment SET 1 {.tabset .tabset-fade .tabset-pills}
+
+
+### Figure (non-normalize to protein)
+
+```{r echo = F, warning = F, fig.height = 10, fig.width = 12}
+# ANOVA
+anova <- aov(`Recorded Fluorescence (Log,2)` ~ Treatment, data = ROS.assay_reorder_1)
+
+# Extract P-value
+p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
+
+# Contrast with Dunnett
+emm_contrasts <- anova %>%
+  emmeans("Treatment") %>%
+  contrast("trt.vs.ctrl", infer = c(TRUE, TRUE)) %>%
+  as_tibble() %>%
+  mutate(p.value.round = insight::format_p(p.value, name = NULL,),
+         p.value.star = insight::format_p(p.value, name = NULL, stars_only = TRUE)) 
+
+emm_contrasts_split <- emm_contrasts
+## Split string
+emm_contrasts_split[c('group1', 'group2')] <- str_split_fixed(emm_contrasts_split$contrast, ' - ', 2) 
+
+
+
+
+## Data Summary ##
+dt_summary <- ROS.assay_reorder_1 %>%
+  group_by(Treatment) %>%
+        summarize(mean = mean(`Recorded Fluorescence (Log,2)`),
+                  sd = sd(`Recorded Fluorescence (Log,2)`))
+
+################################## Create Plot ##################################
+
+ggplot() + 
+        
+        geom_bar(data = dt_summary,
+    aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = FALSE) +
+        
+        geom_errorbar(data = dt_summary,
+                aes(
+                  ymin = mean - sd,
+                  ymax = mean + sd,
+                  x = Treatment
+                ),
+                width = 0.1) +
+        
+# Color Bar Plot (Discrete)
+  scale_fill_manual(values=as.vector(kelly(20))) + 
+        
+        labs(x = "Treatment", y = expression(paste("ROS, ",Log[2],"(Fluorescence)")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
+        
+# letters
+stat_pvalue_manual(data = emm_contrasts_split,
+                   y.position = rep(18,12),
+                   label = "p.value.star",
+                   x = "group1",
+                   vjust = 2,
+                   remove.bracket=TRUE,
+                   size = 10) +
+        theme_classic() +
+        theme(axis.text = element_text(angle = 90, color = "black"),
+              text = element_text(size = 23)) +
+        ylim(0,20)
+
+```
+
+
+```{r include = F}
+ggsave(here("figures","ROS_assay","ROS_dunnett_set1.jpg"), dpi = 300, width = 10, height = 8)
+```
+
+
+
+### Stats - Dunnett's test (non-normalize to protein)
+
+```{r echo = F}
+datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
+
+datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
+        formatRound(columns = c("mean","sd"), digits = 2)
+```
+
+
+
+## ROS Experiment SET 2 {.tabset .tabset-fade .tabset-pills}
+
+
+### Figure (non-normalize to protein)
+
+```{r echo = F, warning = F, fig.height = 10, fig.width = 12}
+# ANOVA
+anova <- aov(`Recorded Fluorescence (Log,2)` ~ Treatment, data = ROS.assay_reorder_2)
+
+# Extract P-value
+p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
+
+# Contrast with Dunnett
+emm_contrasts <- anova %>%
+  emmeans("Treatment") %>%
+  contrast("trt.vs.ctrl", infer = c(TRUE, TRUE)) %>%
+  as_tibble() %>%
+  mutate(p.value.round = insight::format_p(p.value, name = NULL,),
+         p.value.star = insight::format_p(p.value, name = NULL, stars_only = TRUE)) 
+
+emm_contrasts_split <- emm_contrasts
+## Split string
+emm_contrasts_split[c('group1', 'group2')] <- str_split_fixed(emm_contrasts_split$contrast, ' - ', 2) 
+
+
+
+
+## Data Summary ##
+dt_summary <- ROS.assay_reorder_2 %>%
+  group_by(Treatment) %>%
+        summarize(mean = mean(`Recorded Fluorescence (Log,2)`),
+                  sd = sd(`Recorded Fluorescence (Log,2)`))
+
+################################## Create Plot ##################################
+
+ggplot() + 
+        
+        geom_bar(data = dt_summary,
+    aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = FALSE) +
+        
+        geom_errorbar(data = dt_summary,
+                aes(
+                  ymin = mean - sd,
+                  ymax = mean + sd,
+                  x = Treatment
+                ),
+                width = 0.1) +
+        
+# Color Bar Plot (Discrete)
+  scale_fill_manual(values=as.vector(kelly(20))) + 
+        
+        labs(x = "Treatment", y = expression(paste("ROS, ",Log[2],"(Fluorescence)")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
+        
+# letters
+stat_pvalue_manual(data = emm_contrasts_split,
+                   y.position = rep(18,12),
+                   label = "p.value.star",
+                   x = "group1",
+                   vjust = 2,
+                   remove.bracket=TRUE,
+                   size = 10) +
+        theme_classic() +
+        theme(axis.text = element_text(angle = 90, color = "black"),
+              text = element_text(size = 23)) +
+        ylim(0,20)
+
+```
+
+
+```{r include = F}
+ggsave(here("figures","ROS_assay","ROS_dunnett_set2.jpg"), dpi = 300, width = 10, height = 8)
+```
+
+
+
+### Stats - Dunnett's test (non-normalize to protein)
+
+```{r echo = F}
+datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
+
+datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
+        formatRound(columns = c("mean","sd"), digits = 2)
+```
+
+
+## ROS Experiment SET 3 {.tabset .tabset-fade .tabset-pills}
+
+
+### Figure (non-normalize to protein)
+
+```{r echo = F, warning = F, fig.height = 10, fig.width = 12}
+# ANOVA
+anova <- aov(`Recorded Fluorescence (Log,2)` ~ Treatment, data = ROS.assay_reorder_3)
+
+# Extract P-value
+p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
+
+# Contrast with Dunnett
+emm_contrasts <- anova %>%
+  emmeans("Treatment") %>%
+  contrast("trt.vs.ctrl", infer = c(TRUE, TRUE)) %>%
+  as_tibble() %>%
+  mutate(p.value.round = insight::format_p(p.value, name = NULL,),
+         p.value.star = insight::format_p(p.value, name = NULL, stars_only = TRUE)) 
+
+emm_contrasts_split <- emm_contrasts
+## Split string
+emm_contrasts_split[c('group1', 'group2')] <- str_split_fixed(emm_contrasts_split$contrast, ' - ', 2) 
+
+
+
+
+## Data Summary ##
+dt_summary <- ROS.assay_reorder_3 %>%
+  group_by(Treatment) %>%
+        summarize(mean = mean(`Recorded Fluorescence (Log,2)`),
+                  sd = sd(`Recorded Fluorescence (Log,2)`))
+
+################################## Create Plot ##################################
+
+ggplot() + 
+        
+        geom_bar(data = dt_summary,
+    aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = FALSE) +
+        
+        geom_errorbar(data = dt_summary,
+                aes(
+                  ymin = mean - sd,
+                  ymax = mean + sd,
+                  x = Treatment
+                ),
+                width = 0.1) +
+        
+# Color Bar Plot (Discrete)
+  scale_fill_manual(values=as.vector(kelly(20))) + 
+        
+        labs(x = "Treatment", y = expression(paste("ROS, ",Log[2],"(Fluorescence)")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
+        
+# letters
+stat_pvalue_manual(data = emm_contrasts_split,
+                   y.position = rep(18,12),
+                   label = "p.value.star",
+                   x = "group1",
+                   vjust = 2,
+                   remove.bracket=TRUE,
+                   size = 10) +
+        theme_classic() +
+        theme(axis.text = element_text(angle = 90, color = "black"),
+              text = element_text(size = 23)) +
+        ylim(0,20)
+
+```
+
+
+```{r include = F}
+ggsave(here("figures","ROS_assay","ROS_dunnett_set3.jpg"), dpi = 300, width = 10, height = 8)
+```
+
+
+
+### Stats - Dunnett's test (non-normalize to protein)
+
+```{r echo = F}
+datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
+
+datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")) %>%
+        formatRound(columns = c("mean","sd"), digits = 2)
+```
+
+
+
+## ROS Experiment SET 2 and 3 combined {.tabset .tabset-fade .tabset-pills}
+
+
+### Figure (non-normalize to protein)
+
+```{r echo = F, warning = F, fig.height = 10, fig.width = 12}
+# ANOVA
+anova <- aov(`Recorded Fluorescence (Log,2)` ~ Treatment, data = ROS.assay_reorder_2_3)
+
+# Extract P-value
+p_value <- signif(summary(anova)[[1]][["Pr(>F)"]][1],3)
+
+# Contrast with Dunnett
+emm_contrasts <- anova %>%
+  emmeans("Treatment") %>%
+  contrast("trt.vs.ctrl", infer = c(TRUE, TRUE)) %>%
+  as_tibble() %>%
+  mutate(p.value.round = insight::format_p(p.value, name = NULL,),
+         p.value.star = insight::format_p(p.value, name = NULL, stars_only = TRUE)) 
+
+emm_contrasts_split <- emm_contrasts
+## Split string
+emm_contrasts_split[c('group1', 'group2')] <- str_split_fixed(emm_contrasts_split$contrast, ' - ', 2) 
+
+
+
+
+## Data Summary ##
+dt_summary <- ROS.assay_reorder_2_3 %>%
+  group_by(Treatment) %>%
+        summarize(mean = mean(`Recorded Fluorescence (Log,2)`),
+                  sd = sd(`Recorded Fluorescence (Log,2)`))
+
+################################## Create Plot ##################################
+
+ggplot() + 
+        
+        geom_bar(data = dt_summary,
+    aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = FALSE) +
+        
+        geom_errorbar(data = dt_summary,
+                aes(
+                  ymin = mean - sd,
+                  ymax = mean + sd,
+                  x = Treatment
+                ),
+                width = 0.1) +
+        
+# Color Bar Plot (Discrete)
+  scale_fill_manual(values=as.vector(kelly(20))) + 
+        
+        labs(x = "Treatment", y = expression(paste("ROS, ",Log[2],"(Fluorescence)")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
+        
+# letters
+stat_pvalue_manual(data = emm_contrasts_split,
+                   y.position = rep(18,12),
+                   label = "p.value.star",
+                   x = "group1",
+                   vjust = 2,
+                   remove.bracket=TRUE,
+                   size = 10) +
+        theme_classic() +
+        theme(axis.text = element_text(angle = 90, color = "black"),
+              text = element_text(size = 23)) +
+        ylim(0,20)
+
+```
+
+
+```{r include = F}
+ggsave(here("figures","ROS_assay","ROS_dunnett_set_2and3.jpg"), dpi = 300, width = 10, height = 8)
+```
+
+
+
+### Stats - Dunnett's test (non-normalize to protein)
 
 ```{r echo = F}
 datatable(as.data.frame(emm_contrasts), colnames = c("Contrast", "Mean Diff", "SE", "DF"," Lower CI 95%", "Upper CI 95%","T.ratio","P.adjusted","P.rounded","Sig Level"))
