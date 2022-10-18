@@ -70,6 +70,19 @@ ggbarplot(phago.assay.sum, x = "Set", y = "mean_flu",
         labs(y = "Total Fluorescence in Assay")
 ```
 
+### Mean CVs by set (non-normalize)
+```{r}
+Set_levels <- levels(phago.assay.sum$Set)
+for (x in Set_levels) {
+        hist(phago.assay.sum$cv_flu[phago.assay.sum$Set==x],
+             xlab = paste("Set = ",x),
+             main  = paste("CV Histogram: Set = ",x),
+             breaks = 10,
+             col="darkmagenta")
+}
+
+```
+
 
 ### Normalize to protein
 ```{r echo = F}
@@ -93,9 +106,24 @@ ggbarplot(norm_phago.assay.sum, x = "Set", y = "norm_mean_flu",
         labs(y = "Total Fluorescence in Assay")
 ```
 
+### Mean CVs by set (Normalize)
+
+```{r}
+Set_levels <- levels(norm_phago.assay.sum$Set)
+
+for (x in Set_levels) {
+        hist(norm_phago.assay.sum$norm_cv_flu[norm_phago.assay.sum$Set==x],
+             xlab = paste("Set = ",x),
+             main  = paste("CV Histogram: Set = ",x),
+             breaks = 10,
+             col="darkmagenta")
+}
+
+```
+
 ## Summary
 
-> I recommend not combining the sets
+> I recommend not combining the sets. Set 2 has lower CVs (although still quite high overall).
 
 ## Save rdata
 ```{r}
