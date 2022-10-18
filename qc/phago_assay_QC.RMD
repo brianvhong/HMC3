@@ -1,0 +1,103 @@
+---
+title: "Phagocytosis QC"
+author: "Brian"
+date: "2022-10-18"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 2
+---
+
+```{r include = F}
+## Packages
+if(!any(rownames(installed.packages()) == "pacman")){
+   install.packages("pacman")
+}
+
+pacman::p_load(here,
+               tidyverse,
+               DT,
+               ggpubr,
+               rstatix)
+```
+
+
+
+```{r include = F}
+## Read csv
+phago.assay <- read_csv(here("tidy","HMC3 Phagocytosis Compiled.csv"),
+                        skip = 2)[,1:4]
+
+phago.assay$Set <- as.factor(phago.assay$Set)
+```
+
+
+## Samples
+```{r echo = F}
+phago.assay <- phago.assay %>%
+        mutate(norm_flu = `Raw Recorded Fluorescence`/Protein_ug_mL)
+
+datatable(phago.assay, colnames = c("Treatment", "Set","RAW Fluorescence","Protein (ug/mL)","Norm Fluorescence per protein")) %>%
+        formatRound(columns = c("Protein_ug_mL","Raw Recorded Fluorescence","norm_flu"), digits = 3)
+```
+
+
+
+## Data Summary 
+
+### Non-normalize to protein
+```{r echo = F}
+phago.assay.sum <- phago.assay %>%
+        group_by(Treatment, Set) %>%
+        summarize(mean_flu = mean(`Raw Recorded Fluorescence`),
+                  sd_flu= sd(`Raw Recorded Fluorescence`),
+                  cv_flu = sd_flu/mean_flu * 100)
+
+datatable(phago.assay.sum, colnames = c("Treatment","Set", "ROS Fluorescence","SD","CV (%)")) %>%
+        formatRound(columns = c("mean_flu", "sd_flu","cv_flu"), digits = 3)
+```
+
+> CVs are high in non-normalized data. 
+
+***
+
+## Compare by Sets (non-normalized)
+
+```{r}
+ggbarplot(phago.assay.sum, x = "Set", y = "mean_flu",
+  label = TRUE, label.pos = "out") +
+        labs(y = "Total Fluorescence in Assay")
+```
+
+
+### Normalize to protein
+```{r echo = F}
+norm_phago.assay.sum <- phago.assay %>%
+        group_by(Treatment, Set) %>%
+        summarize(norm_mean_flu = mean(norm_flu),
+                  norm_sd_flu = sd(norm_flu),
+                  norm_cv_flu = norm_sd_flu/norm_mean_flu * 100)
+
+datatable(norm_phago.assay.sum, colnames = c("Treatment","Set","Norm  Fluorescence","SD","CV (%)")) %>%
+        formatRound(columns = c("norm_mean_flu", "norm_sd_flu","norm_cv_flu"), digits = 3)
+```
+
+> Slighlty more variable with protein normalization. 
+
+## Compare by Sets (Normalized)
+
+```{r}
+ggbarplot(norm_phago.assay.sum, x = "Set", y = "norm_mean_flu",
+  label = TRUE, label.pos = "out") +
+        labs(y = "Total Fluorescence in Assay")
+```
+
+## Summary
+
+> I recommend not combining the sets
+
+## Save rdata
+```{r}
+save(phago.assay, phago.assay.sum, norm_phago.assay.sum, file = here("rdata","phago_tidy.rdata"))
+```
