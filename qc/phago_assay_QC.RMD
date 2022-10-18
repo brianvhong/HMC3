@@ -54,11 +54,27 @@ phago.assay.sum <- phago.assay %>%
                   sd_flu= sd(`Raw Recorded Fluorescence`),
                   cv_flu = sd_flu/mean_flu * 100)
 
-datatable(phago.assay.sum, colnames = c("Treatment","Set", "ROS Fluorescence","SD","CV (%)")) %>%
+datatable(phago.assay.sum, colnames = c("Treatment","Set", "Raw Fluorescence","SD","CV (%)")) %>%
         formatRound(columns = c("mean_flu", "sd_flu","cv_flu"), digits = 3)
 ```
 
 > CVs are high in non-normalized data. 
+
+***
+
+### Log 2 transform Non-normalize to protein
+```{r echo = F}
+phago.assay.sum.log <- phago.assay %>%
+        group_by(Treatment, Set) %>%
+        summarize(mean_flu = mean(log2(`Raw Recorded Fluorescence`)),
+                  sd_flu= sd(log2(`Raw Recorded Fluorescence`)),
+                  cv_flu = sd_flu/mean_flu * 100)
+
+datatable(phago.assay.sum.log, colnames = c("Treatment","Set", "log2(Fluorescence)","SD","CV (%)")) %>%
+        formatRound(columns = c("mean_flu", "sd_flu","cv_flu"), digits = 3)
+```
+
+> CVs are much lower in log2(fluorescence) non-normalized data. 
 
 ***
 
@@ -70,11 +86,11 @@ ggbarplot(phago.assay.sum, x = "Set", y = "mean_flu",
         labs(y = "Total Fluorescence in Assay")
 ```
 
-### Mean CVs by set (non-normalize)
+### Mean CVs by set (Log2 non-normalize data)
 ```{r}
-Set_levels <- levels(phago.assay.sum$Set)
+Set_levels <- levels(phago.assay.sum.log$Set)
 for (x in Set_levels) {
-        hist(phago.assay.sum$cv_flu[phago.assay.sum$Set==x],
+        hist(phago.assay.sum.log$cv_flu[phago.assay.sum.log$Set==x],
              xlab = paste("Set = ",x),
              main  = paste("CV Histogram: Set = ",x),
              breaks = 10,
@@ -123,7 +139,7 @@ for (x in Set_levels) {
 
 ## Summary
 
-> I recommend not combining the sets. Set 2 has lower CVs (although still quite high overall).
+> I recommend not combining the sets. Set 2 has lower CVs (and improved after log transformation).
 
 ## Save rdata
 ```{r}
