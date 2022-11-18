@@ -37,7 +37,8 @@ pacman::p_load(here,
                insight,
                ggpubr,
                stringr,
-               DescTools)
+               DescTools,
+               forcats)
 
 ## Load RData
 load(here("rdata","ATP_tidy.rdata"))
@@ -115,13 +116,17 @@ dt_summary <- ATP.assay_reorder %>%
   group_by(Treatment) %>%
         summarize(mean = mean(`Calculated Fluorescence (nmol/well)`),
                   sd = sd(`Calculated Fluorescence (nmol/well)`))
+#define custom color scale
+myColors <- as.vector(kelly(13))
+names(myColors) <- levels(dt_summary$Treatment)
+custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
 
 ################################## Create Plot ##################################
-
+ATP_figure <- dt_summary %>%
+        mutate(Treatment = fct_reorder(Treatment, mean, .desc = FALSE)) %>%
 ggplot() + 
         
-        geom_bar(data = dt_summary,
-    aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = FALSE) +
+        geom_bar(aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = FALSE) +
         
         geom_errorbar(data = dt_summary,
                 aes(
@@ -132,7 +137,7 @@ ggplot() +
                 width = 0.1) +
         
 # Color Bar Plot (Discrete)
-  scale_fill_manual(values=as.vector(kelly(20))) + 
+custom_colors + 
         
         labs(x = "Treatment", y = expression(paste("ATP, ","nmol/well")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
         
@@ -148,12 +153,14 @@ stat_pvalue_manual(data = emm_contrasts_split,
         theme(axis.text = element_text(angle = 90, color = "black"),
               text = element_text(size = 23)) +
         ylim(0,3)
-
+ATP_figure
+saveRDS(object = ATP_figure, file = here("manuscript","data","ATP.RDS"))
 ```
 
 
 ```{r include = F}
- ggsave(here("figures","ATP_assay","ATP_dunnett.jpg"), dpi = 300, width = 10, height = 8)
+ggsave(plot = ATP_figure,here("manuscript","figures","ATP_assay.jpg"), dpi = 300, width = 10, height = 8)
+
 ```
 
 

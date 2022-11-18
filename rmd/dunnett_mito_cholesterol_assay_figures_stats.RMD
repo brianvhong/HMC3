@@ -37,7 +37,8 @@ pacman::p_load(here,
                insight,
                ggpubr,
                stringr,
-               DescTools)
+               DescTools,
+               forcats)
 
 ## Load RData
 load(here("rdata","mito_cholesterol_tidy.rdata"))
@@ -104,12 +105,16 @@ dt_summary <- chol.assay.protein_reorder %>%
                   sd = sd(free_chol_uM))
 
 
-
+#define custom color scale
+myColors <- as.vector(kelly(13))
+names(myColors) <- levels(dt_summary$treatment)
+custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
 ################################## Create Plot ##################################
-ggplot() + 
+mito_chol_figure <- dt_summary %>%
+        mutate(treatment = fct_reorder(treatment, mean, .desc = FALSE)) %>%
+        ggplot() + 
         
-        geom_bar(data = dt_summary,
-    aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = FALSE) +
+        geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = FALSE) +
         
         geom_errorbar(data = dt_summary,
                 aes(
@@ -120,7 +125,7 @@ ggplot() +
                 width = 0.1) +
         
 # Color Bar Plot (Discrete)
-  scale_fill_manual(values=as.vector(kelly(20))) + 
+custom_colors + 
         
         labs(x = "Treatment", y = expression(paste("Mitochondrial Cholesterol Content, ",mu,"M")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
         
@@ -136,10 +141,13 @@ stat_pvalue_manual(data = emm_contrasts_split,
         theme(axis.text = element_text(angle = 90, color = "black"),
               text = element_text(size = 23)) +
         ylim(0, 24)
+
+mito_chol_figure
+saveRDS(object = mito_chol_figure, file = here("manuscript","data","mito_chol_figure.RDS"))
 ```
 
 ```{r include = F}
-ggsave(here("figures","mitochondrial_assay","mito_chol.jpg"), dpi = 300, width = 10, height = 9)
+ggsave(plot = mito_chol_figure,here("manuscript","figures","mito_chol_assay.jpg"), dpi = 300, width = 10, height = 8)
 ```
 
 
@@ -192,7 +200,10 @@ dt_summary <- chol.assay.protein_reorder %>%
                   sd = sd(log2_free_chol_uM))
 
 
-
+#define custom color scale
+myColors <- as.vector(kelly(13))
+names(myColors) <- levels(dt_summary$treatment)
+custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
 ################################## Create Plot ##################################
 ggplot() + 
         
@@ -208,7 +219,7 @@ ggplot() +
                 width = 0.1) +
         
 # Color Bar Plot (Discrete)
-  scale_fill_manual(values=as.vector(kelly(20))) + 
+custom_colors + 
         
         labs(x = "Treatment", y = expression(paste(Log[2],"(Mitochondrial Cholesterol)")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
         
