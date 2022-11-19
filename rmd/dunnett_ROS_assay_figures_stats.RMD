@@ -121,12 +121,17 @@ dt_summary <- ROS.assay_reorder %>%
         summarize(mean = mean(`Recorded Fluorescence (Log,2)`),
                   sd = sd(`Recorded Fluorescence (Log,2)`))
 
+#define custom color scale
+myColors <- as.vector(kelly(13))
+names(myColors) <- levels(dt_summary$Treatment)
+custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
+
 ################################## Create Plot ##################################
 ROS_figure <- dt_summary %>%
         mutate(Treatment = fct_reorder(Treatment, mean, .desc = FALSE)) %>%
 ggplot() + 
         
-        geom_bar( aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = FALSE) +
+        geom_bar( aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = TRUE) +
         
         geom_errorbar(data = dt_summary,
                 aes(
@@ -137,7 +142,7 @@ ggplot() +
                 width = 0.1) +
         
 # Color Bar Plot (Discrete)
-  scale_fill_manual(values=as.vector(kelly(20))) + 
+custom_colors + 
         
         labs(x = "Treatment", y = expression(paste("ROS, ",Log[2],"(Fluorescence)")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
         
@@ -159,7 +164,7 @@ saveRDS(object = ROS_figure, file = here("manuscript","data","ROS.RDS"))
 
 
 ```{r include = F}
-ggsave(plot = ROS_figure,here("manuscript","figures","ROS_assay.jpg"), dpi = 300, width = 10, height = 8)
+#ggsave(plot = ROS_figure,here("manuscript","figures","ROS_assay.jpg"), dpi = 300, width = 10, height = 8)
 
 ```
 

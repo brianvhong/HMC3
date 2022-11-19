@@ -105,18 +105,19 @@ dt_summary <- apoe.assay.protein_reorder %>%
         summarize(mean = mean(apoe_pg_ml),
                   sd = sd(apoe_pg_ml))
 
-################################## Create Plot ##################################
+
 #define custom color scale
 myColors <- as.vector(kelly(13))
 names(myColors) <- levels(dt_summary$treatment)
 custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
 
+################################## Create Plot ##################################
+
 apoe_figure <- dt_summary %>%
         mutate(treatment = fct_reorder(treatment, mean, .desc = TRUE)) %>%
 ggplot() + 
         
-        geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = FALSE) +
-        custom_colors +
+        geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = TRUE) +
         geom_errorbar(data = dt_summary,
                 aes(
                   ymin = mean - sd,
@@ -126,7 +127,7 @@ ggplot() +
                 width = 0.1) +
         
 # Color Bar Plot (Discrete)
-custom_colors
+custom_colors +
         
         labs(x = "Treatment", y = expression(paste("ApoE, ","pg/mL")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
         
@@ -142,13 +143,14 @@ stat_pvalue_manual(data = emm_contrasts_split,
         theme(axis.text = element_text(angle = 90, color = "black"),
               text = element_text(size = 23)) +
         ylim(0,850)
+        
 apoe_figure
 saveRDS(object = apoe_figure, file = here("manuscript","data","apoe.RDS"))
 ```
 
 
 ```{r include = F}
-ggsave(plot = apoe_figure,here("manuscript","figures","apoe_assay.jpg"), dpi = 300, width = 10, height = 8)
+#ggsave(plot = apoe_figure,here("manuscript","figures","apoe_assay.jpg"), dpi = 300, width = 10, height = 8)
 
 ```
 

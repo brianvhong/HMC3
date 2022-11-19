@@ -1,0 +1,98 @@
+---
+title: "Figures combined"
+author: "Brian"
+date: "2022-11-19"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 2
+---
+
+<style type="text/css">
+.main-container {
+  max-width: 2000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+
+```{r}
+## Packages
+if(!any(rownames(installed.packages()) == "pacman")){
+   install.packages("pacman")
+}
+pacman::p_load(here,
+               tidyverse,
+               multcomp,
+               multcompView,
+               DT,
+               forcats,
+               ggtext,
+               pals,
+               emmeans,
+               kableExtra,
+               broom,
+               insight,
+               ggpubr,
+               stringr,
+               DescTools,
+               forcats,
+               ggstatsplot)
+               
+data_list <- list.files(here("manuscript","data"))    
+
+apoe <- readRDS(here("manuscript","data","apoe.RDS"))
+ATP <- readRDS(here("manuscript","data","ATP.RDS"))
+chol <- readRDS(here("manuscript","data","chol.RDS"))
+ester <- readRDS(here("manuscript","data","ester_chol_figure.RDS"))
+mito <- readRDS(here("manuscript","data","mito_chol_figure.RDS"))
+phago <- readRDS(here("manuscript","data","phago.RDS"))
+ROS <- readRDS(here("manuscript","data","ROS.RDS"))
+```
+
+
+```{r}
+arranged_1 <- combine_plots(
+  list(chol, ester, mito, apoe),
+  plotgrid.args = list(nrow = 2),
+  annotation.args = list(
+    tag_levels = "A")) 
+
+
+
+arranged_1 <- ggarrange(chol + theme(axis.text.x=element_blank(),
+                                     axis.title.x=element_blank(),
+                                     legend.text = element_text(size = 24.5)),
+                      ester + theme(axis.text.x=element_blank(),
+                                    axis.title.x=element_blank()),
+                      mito + theme(axis.text.x=element_blank()),
+                      apoe + theme(axis.text.x=element_blank()),
+                      common.legend = TRUE,
+                      legend="bottom",
+          labels = "AUTO",
+           font.label = list(size = 30))
+
+arranged_1
+ggsave(filename = here("manuscript","figures","Chol_group.jpg"), plot = last_plot(), dpi = 300, width = 18, height = 15)
+```
+
+
+```{r}
+arranged_2 <- ggarrange(ATP + theme(axis.text.x=element_blank(),
+                                     axis.title.x=element_blank(),
+                                     legend.text = element_text(size = 24)),
+                      ROS + theme(axis.text.x=element_blank(),
+                                    axis.title.x=element_blank()),
+                      phago + theme(axis.text.x=element_blank()),
+                      common.legend = TRUE,
+                      legend="bottom",
+          labels = "AUTO",
+           font.label = list(size = 30),
+          nrow = 3)
+
+arranged_2
+ggsave(filename = here("manuscript","figures","ATP_ROS_phago_group.jpg"), plot = last_plot(), dpi = 300, width = 17.5, height = 18.5)
+```
+

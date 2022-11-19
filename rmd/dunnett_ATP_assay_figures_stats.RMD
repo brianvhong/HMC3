@@ -126,7 +126,7 @@ ATP_figure <- dt_summary %>%
         mutate(Treatment = fct_reorder(Treatment, mean, .desc = FALSE)) %>%
 ggplot() + 
         
-        geom_bar(aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = FALSE) +
+        geom_bar(aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = TRUE) +
         
         geom_errorbar(data = dt_summary,
                 aes(
@@ -159,7 +159,7 @@ saveRDS(object = ATP_figure, file = here("manuscript","data","ATP.RDS"))
 
 
 ```{r include = F}
-ggsave(plot = ATP_figure,here("manuscript","figures","ATP_assay.jpg"), dpi = 300, width = 10, height = 8)
+#ggsave(plot = ATP_figure,here("manuscript","figures","ATP_assay.jpg"), dpi = 300, width = 10, height = 8)
 
 ```
 

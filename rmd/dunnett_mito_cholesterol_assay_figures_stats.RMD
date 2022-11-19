@@ -114,7 +114,7 @@ mito_chol_figure <- dt_summary %>%
         mutate(treatment = fct_reorder(treatment, mean, .desc = FALSE)) %>%
         ggplot() + 
         
-        geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = FALSE) +
+        geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = TRUE) +
         
         geom_errorbar(data = dt_summary,
                 aes(
@@ -147,7 +147,7 @@ saveRDS(object = mito_chol_figure, file = here("manuscript","data","mito_chol_fi
 ```
 
 ```{r include = F}
-ggsave(plot = mito_chol_figure,here("manuscript","figures","mito_chol_assay.jpg"), dpi = 300, width = 10, height = 8)
+#ggsave(plot = mito_chol_figure,here("manuscript","figures","mito_chol_assay.jpg"), dpi = 300, width = 10, height = 8)
 ```
 
 

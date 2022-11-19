@@ -114,7 +114,7 @@ chol_figure <- dt_summary %>%
         mutate(treatment = fct_reorder(treatment, mean, .desc = FALSE)) %>%
 ggplot() + 
         
-        geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = FALSE) +
+        geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = TRUE) +
         
         geom_errorbar(data = dt_summary,
                 aes(
@@ -147,7 +147,7 @@ saveRDS(object = chol_figure, file = here("manuscript","data","chol.RDS"))
 ```
 
 ```{r include = F}
-ggsave(plot = chol_figure,here("manuscript","figures","chol_assay.jpg"), dpi = 300, width = 10, height = 8)
+#ggsave(plot = chol_figure,here("manuscript","figures","chol_assay.jpg"), dpi = 300, width = 10, height = 8)
 
 ```
 
@@ -206,7 +206,7 @@ ester_chol_figure <- dt_summary %>%
         mutate(treatment = fct_reorder(treatment, mean, .desc = FALSE)) %>%
 ggplot() + 
         
-        geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = FALSE) +
+        geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = TRUE) +
         
         geom_errorbar(data = dt_summary,
                 aes(
@@ -239,7 +239,7 @@ saveRDS(object = ester_chol_figure, file = here("manuscript","data","ester_chol_
 ```
 
 ```{r include = F}
-ggsave(plot = ester_chol_figure,here("manuscript","figures","ester_chol_figure_assay.jpg"), dpi = 300, width = 10, height = 8)
+#ggsave(plot = ester_chol_figure,here("manuscript","figures","ester_chol_figure_assay.jpg"), dpi = 300, width = 10, height = 8)
 
 ```
 
