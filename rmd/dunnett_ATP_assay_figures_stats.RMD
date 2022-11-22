@@ -123,7 +123,7 @@ custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
 
 ################################## Create Plot ##################################
 ATP_figure <- dt_summary %>%
-        mutate(Treatment = fct_reorder(Treatment, mean, .desc = FALSE)) %>%
+        mutate(Treatment = fct_reorder(Treatment, mean, .desc = TRUE)) %>%
 ggplot() + 
         
         geom_bar(aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = TRUE) +
@@ -159,7 +159,7 @@ saveRDS(object = ATP_figure, file = here("manuscript","data","ATP.RDS"))
 
 
 ```{r include = F}
-#ggsave(plot = ATP_figure,here("manuscript","figures","ATP_assay.jpg"), dpi = 300, width = 10, height = 8)
+ggsave(plot = ATP_figure,here("manuscript","figures","ATP_assay.jpg"), dpi = 300, width = 10, height = 8)
 
 ```
 
