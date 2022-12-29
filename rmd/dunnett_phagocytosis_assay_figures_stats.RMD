@@ -126,6 +126,8 @@ dt_summary <- phago.assay_reorder_1 %>%
 myColors <- as.vector(kelly(13))
 names(myColors) <- levels(dt_summary$Treatment)
 custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
+
+
 ################################## Create Plot ##################################
 phago_figure <- dt_summary %>%
         mutate(Treatment = fct_reorder(Treatment, mean, .desc = FALSE)) %>%
@@ -216,11 +218,26 @@ dt_summary <- phago.assay_reorder_2 %>%
 myColors <- as.vector(kelly(13))
 names(myColors) <- levels(dt_summary$Treatment)
 custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
+
+## Custom Factor where Control is First
+dt_summary$Treatment <- factor(dt_summary$Treatment, 
+                               levels = c("Control", 
+                                          "Cholesterol_LPS",
+                                          "Fructose_Cholesterol",
+                                          "AβO_Cholesterol_LPS",
+                                          "Fructose",
+                                          "AβO_Cholesterol",
+                                          "Cholesterol",
+                                          "LPS",
+                                          "Fructose_LPS",
+                                          "AβO_Fru_Chol_LPS",
+                                          "AβO",
+                                          "AβO_LPS",
+                                          "AβO_Fructose"))
+
 ################################## Create Plot ##################################
 phago_figure <- dt_summary %>%
-        mutate(Treatment = fct_reorder(Treatment, mean, .desc = TRUE)) %>%
 ggplot() + 
-        
         geom_bar(aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = TRUE) +
         
         geom_errorbar(data = dt_summary,

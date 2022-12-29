@@ -570,10 +570,26 @@ myColors <- as.vector(kelly(13))
 names(myColors) <- levels(dt_summary$Treatment)
 custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
 
+## Custom Factor where Control is First
+dt_summary$Treatment <- factor(dt_summary$Treatment, 
+                               levels = c("Control", 
+                                          "Fructose_Cholesterol",
+                                          "Fructose",
+                                          "Fructose_LPS",
+                                          "LPS",
+                                          "Cholesterol_LPS",
+                                          "AβO_Cholesterol_LPS",
+                                          "AβO_LPS",
+                                          "AβO_Fructose",
+                                          "Cholesterol",
+                                          "AβO_Cholesterol",
+                                          "AβO",
+                                          "AβO_Fru_Chol_LPS"))
+
+
 ################################## Create Plot ##################################
 
 ROS_figure <- dt_summary %>%
-        mutate(Treatment = fct_reorder(Treatment, mean, .desc = FALSE)) %>%
         ggplot() + 
         geom_bar(aes(y = mean, x = Treatment, fill = Treatment), stat = "identity", show.legend = FALSE) +
         
