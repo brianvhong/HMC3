@@ -93,6 +93,6 @@ arranged_2 <- ggarrange(ATP + theme(axis.text.x=element_blank(),
           nrow = 3)
 
 arranged_2
-ggsave(filename = here("manuscript","figures","ATP_ROS_phago_group.jpg"), plot = last_plot(), dpi = 300, width = 17.5, height = 18.5)
+ggsave(filename = here("manuscript","figures","2023.02.08_ATP_ROS_phago_group.jpg"), plot = last_plot(), dpi = 300, width = 17.5, height = 18.5)
 ```
 
