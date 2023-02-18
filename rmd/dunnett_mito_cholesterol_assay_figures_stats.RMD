@@ -111,7 +111,6 @@ names(myColors) <- levels(dt_summary$treatment)
 custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
 ################################## Create Plot ##################################
 mito_chol_figure <- dt_summary %>%
-        mutate(treatment = fct_reorder(treatment, mean, .desc = FALSE)) %>%
         ggplot() + 
         
         geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = TRUE) +

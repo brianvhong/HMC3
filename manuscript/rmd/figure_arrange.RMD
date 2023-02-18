@@ -75,7 +75,7 @@ arranged_1 <- ggarrange(chol + theme(axis.text.x=element_blank(),
            font.label = list(size = 30))
 
 arranged_1
-ggsave(filename = here("manuscript","figures","Chol_group.jpg"), plot = last_plot(), dpi = 300, width = 18, height = 15)
+ggsave(filename = here("manuscript","figures","Chol_group_revised.jpg"), plot = last_plot(), dpi = 300, width = 18, height = 15)
 ```
 
 

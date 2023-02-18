@@ -110,8 +110,7 @@ myColors <- as.vector(kelly(13))
 names(myColors) <- levels(dt_summary$treatment)
 custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
 ################################## Create Plot ##################################
-chol_figure <- dt_summary %>%
-        mutate(treatment = fct_reorder(treatment, mean, .desc = FALSE)) %>%
+chol_figure <- dt_summary |>
 ggplot() + 
         
         geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = TRUE) +
@@ -203,7 +202,6 @@ names(myColors) <- levels(dt_summary$treatment)
 custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
 ################################## Create Plot ##################################
 ester_chol_figure <- dt_summary %>%
-        mutate(treatment = fct_reorder(treatment, mean, .desc = FALSE)) %>%
 ggplot() + 
         
         geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = TRUE) +

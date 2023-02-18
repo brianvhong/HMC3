@@ -114,7 +114,6 @@ custom_colors <- scale_fill_manual(name = "Treatment", values = myColors)
 ################################## Create Plot ##################################
 
 apoe_figure <- dt_summary %>%
-        mutate(treatment = fct_reorder(treatment, mean, .desc = TRUE)) %>%
 ggplot() + 
         
         geom_bar(aes(y = mean, x = treatment, fill = treatment), stat = "identity", show.legend = TRUE) +
