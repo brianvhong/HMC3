@@ -145,6 +145,7 @@ stat_pvalue_manual(data = emm_contrasts_split,
         
 apoe_figure
 saveRDS(object = apoe_figure, file = here("manuscript","data","apoe.RDS"))
+#write_csv(dt_summary,here("output","APOE_summary.csv"))
 ```
 
 
