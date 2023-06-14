@@ -170,6 +170,7 @@ stat_pvalue_manual(data = emm_contrasts_split,
         ylim(0,3)
 ATP_figure
 saveRDS(object = ATP_figure, file = here("manuscript","data","ATP.RDS"))
+#write_csv(dt_summary, here("output","ATP_summary.csv"))
 ```
 
 

@@ -143,6 +143,7 @@ stat_pvalue_manual(data = emm_contrasts_split,
 
 mito_chol_figure
 saveRDS(object = mito_chol_figure, file = here("manuscript","data","mito_chol_figure.RDS"))
+#write_csv(dt_summary,here("output","mitochondrial_cholesterol_summary.csv"))
 ```
 
 ```{r include = F}

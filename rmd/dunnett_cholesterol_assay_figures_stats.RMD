@@ -143,6 +143,7 @@ stat_pvalue_manual(data = emm_contrasts_split,
 
 chol_figure
 saveRDS(object = chol_figure, file = here("manuscript","data","chol.RDS"))
+#write_csv(dt_summary,here("output","Total_cholesterol_summary.csv"))
 ```
 
 ```{r include = F}
@@ -234,6 +235,7 @@ stat_pvalue_manual(data = emm_contrasts_split,
 
 ester_chol_figure
 saveRDS(object = ester_chol_figure, file = here("manuscript","data","ester_chol_figure.RDS"))
+#write_csv(dt_summary,here("output","Esterified_cholesterol_summary.csv"))
 ```
 
 ```{r include = F}
