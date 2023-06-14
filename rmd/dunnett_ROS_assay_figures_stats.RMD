@@ -618,12 +618,13 @@ stat_pvalue_manual(data = emm_contrasts_split,
               text = element_text(size = 23)) +
         ylim(0,20)
 ROS_figure
-saveRDS(object = ROS_figure, file = here("manuscript","data","ROS.RDS"))
+#saveRDS(object = ROS_figure, file = here("manuscript","data","ROS.RDS"))
+#write_csv(dt_summary,here("output","ROS_summary.csv"))
 ```
 
 
 ```{r include = F}
-ggsave(here("manuscript","ROS_assay","ROS_dunnett_set_2and3.jpg"), dpi = 300, width = 10, height = 8)
+#ggsave(here("manuscript","ROS_assay","ROS_dunnett_set_2and3.jpg"), dpi = 300, width = 10, height = 8)
 ```
 
 
