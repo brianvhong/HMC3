@@ -120,7 +120,7 @@ stat_pvalue_manual(data = emm_contrasts_split,
 
 IL1B_plot
 
-ggsave(here("figures","qPCR","IL1B_dunnett.jpg"), dpi = 300, width = 10, height = 10)
+#ggsave(here("figures","qPCR","IL1B_dunnett.jpg"), dpi = 300, width = 10, height = 10)
 
 
 ## Extract P-value variable for heatmap
@@ -191,7 +191,7 @@ stat_pvalue_manual(data = emm_contrasts_split,
 
 IL6_plot
 
-ggsave(here("figures","qPCR","IL6_dunnett.jpg"), dpi = 300, width = 10, height = 10)
+#ggsave(here("figures","qPCR","IL6_dunnett.jpg"), dpi = 300, width = 10, height = 10)
 
 ## Extract P-value variable for heatmap
 IL6_heat <- emm_contrasts_split %>%
@@ -258,7 +258,7 @@ stat_pvalue_manual(data = emm_contrasts_split,
 
 TNFA_plot
 
-ggsave(here("figures","qPCR","TNFa_dunnett.jpg"), dpi = 300, width = 10, height = 10)
+#ggsave(here("figures","qPCR","TNFa_dunnett.jpg"), dpi = 300, width = 10, height = 10)
 
 
 ## Extract P-value variable for heatmap
@@ -325,7 +325,7 @@ APOE_plot <- ggplot(dt, aes(treatment, mean)) +
 
 APOE_plot
 
-ggsave(here("figures","qPCR","APOE_dunnett.jpg"), dpi = 300, width = 10, height = 10)
+#ggsave(here("figures","qPCR","APOE_dunnett.jpg"), dpi = 300, width = 10, height = 10)
 
 ## Extract P-value variable for heatmap
 APOE_heat <- emm_contrasts_split %>%
@@ -363,7 +363,7 @@ patchwork[[4]] = patchwork[[4]] + theme(axis.title.y = element_blank() )
 
 patchwork + plot_annotation(tag_levels = "A")
 
-ggsave(here("figures","qPCR","combine_qPCR_dunnett.jpg"), dpi = 300, width = 18, height = 14)
+#ggsave(here("figures","qPCR","combine_qPCR_dunnett.jpg"), dpi = 300, width = 18, height = 14)
 ```
 
 
@@ -404,5 +404,9 @@ pheatmap(data_summary_df, main = expression("Gene Expression "*Log[2]*"FC"),  di
          annotation_legend = TRUE, filename = here("figures","qPCR","heatmap_new.jpg"))
 ```
 
+```{r}
+## Heatmap Output
+#write_csv(data_summary, here("output","qPCR_heatmap_results.csv"))
+```
 
 
