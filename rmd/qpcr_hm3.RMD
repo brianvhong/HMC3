@@ -395,13 +395,19 @@ significant_heat_df$group1 <- NULL
 rownames(significant_heat_df) <- significant_heat$group1
 ```
 
-
+## Modified for MDPI (Hyphen to minus sign)
 ```{r echo = F, warning = F}
+# Plot the heatmap
+heatmap_obj <- pheatmap(data_summary_df, 
+                        main = expression("Gene Expression "*Log[2]*"FC"),  
+                        display_numbers = significant_heat_df,
+                        border_color = "black",
+                        number_color = "black", 
+                        fontsize_number = 20,
+                        annotation_legend = TRUE, 
+                        scale = "none",  # Set scale to "none"
+                        filename = here("figures", "qPCR", "heatmap_new_minus.jpg"))
 
-pheatmap(data_summary_df, main = expression("Gene Expression "*Log[2]*"FC"),  display_numbers = significant_heat_df,
-         border_color = "black",
-         number_color = "black", fontsize_number=20,
-         annotation_legend = TRUE, filename = here("figures","qPCR","heatmap_new.jpg"))
 ```
 
 ```{r}
