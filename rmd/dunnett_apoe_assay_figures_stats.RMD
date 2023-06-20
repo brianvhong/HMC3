@@ -128,7 +128,7 @@ ggplot() +
 # Color Bar Plot (Discrete)
 custom_colors +
         
-        labs(x = "Treatment", y = expression(paste("ApoE, ","pg/mL")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
+        labs(x = "Treatment", y = expression(paste("ApoE, ","pg/mL")), subtitle = expression(paste("ANOVA: P = ", "1.41 x 10"^-7)))  +
         
 # letters
 stat_pvalue_manual(data = emm_contrasts_split,

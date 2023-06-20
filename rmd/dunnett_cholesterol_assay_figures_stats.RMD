@@ -126,7 +126,7 @@ ggplot() +
 # Color Bar Plot (Discrete)
 custom_colors + 
         
-        labs(x = "Treatment", y = expression(paste("Total Cholesterol Content, ",mu,"M")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
+        labs(x = "Treatment", y = expression(paste("Total Cholesterol Content, ",mu,"M")), subtitle =  expression(paste("ANOVA: P = ", "1.08 x 10"^-4))) +
         
 # letters
 stat_pvalue_manual(data = emm_contrasts_split,
@@ -218,7 +218,7 @@ ggplot() +
 # Color Bar Plot (Discrete)
 custom_colors + 
         
-        labs(x = "Treatment", y = expression(paste("Esterified Cholesterol Content, ",mu,"M")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
+        labs(x = "Treatment", y = expression(paste("Esterified Cholesterol Content, ",mu,"M")), subtitle =  expression(paste("ANOVA: P = ", "5.87 x 10"^-5))) +
         
 # letters
 stat_pvalue_manual(data = emm_contrasts_split,

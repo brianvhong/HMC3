@@ -182,7 +182,7 @@ datatable(dt_summary, colnames = c("Treatment","Mean","Standard Deviation (SD)")
 
 
 
-## Phagocytosis Experiment SET 2 {.tabset .tabset-fade .tabset-pills}
+## Phagocytosis Experiment SET 2 - Manuscript {.tabset .tabset-fade .tabset-pills}
 
 
 ### Figure (non-normalize to protein)
@@ -251,7 +251,7 @@ ggplot() +
 # Color Bar Plot (Discrete)
 custom_colors + 
         
-        labs(x = "Treatment", y = expression(paste("Phagocytosis, ",Log[2],"(Fluorescence)")), subtitle = paste("ANOVA:", " P"," = ", paste0(p_value, collapse = NULL))) +
+        labs(x = "Treatment", y = expression(paste("Phagocytosis, ",Log[2],"(Fluorescence)")), subtitle =  expression(paste("ANOVA: P = ", "3.14 x 10"^-9))) +
         
 # letters
 stat_pvalue_manual(data = emm_contrasts_split,
