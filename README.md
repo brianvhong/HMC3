@@ -1,6 +1,6 @@
 # Human Cell Line Microglia (HMC3)
 
-To document statistical analyses workflow and develop figures for Oscar's HMC3 experiments. 
+To document statistical analyses workflow and develop figures for HMC3 experiments. 
 
 Research Published (2023-06-20): 
 Cholesterol, Amyloid Beta,
